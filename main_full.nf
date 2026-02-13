@@ -19,6 +19,13 @@ if (params.lava_ref == 'UKB') {
     error "Invalid lava_ref value: ${params.lava_ref}. Must be 'UKB' or '1KGP_EUR'"
 }
 
+// Coloc: disabled by default, enable with --coloc true
+params.coloc = params.coloc ?: false
+
+// Coloc p-value threshold for LAVA bivariate results (default: 0.05)
+params.pvalue_LAVA_coloc = params.pvalue_LAVA_coloc ?: 0.05
+pvalue_LAVA_coloc = params.pvalue_LAVA_coloc
+
 // Build channel from metadata file - only processes files listed in metadata
 Channel
     .from(metadata_file.readLines().drop(1))  // skip header before creating channel
@@ -403,6 +410,42 @@ process MergeLAVA {
     """
 }
 
+process CleanupLAVA {
+
+    input:
+    val ready  // signal that merging is complete
+
+    output:
+    val true
+
+    script:
+    """
+    rm -f ${params.output_dir}/LAVA/*_part*.rds
+    """
+}
+
+process Coloc {
+
+    input:
+    val lava_done
+    val run_id
+
+    output:
+    path("*.txt"), emit: data_files, optional: true
+
+    publishDir "${params.output_dir}/coloc", mode: 'copy', pattern: "*.txt"
+
+    script:
+    """
+    Rscript ${params.bin_dir}/coloc.R \
+        ${metadata_file} \
+        ${params.data_dir}/sumstats \
+        ${params.output_dir}/LAVA \
+        ${run_id} \
+        ${pvalue_LAVA_coloc}
+    """
+}
+
 workflow {
     
     // Step 1: Format
@@ -464,5 +507,14 @@ workflow {
              lava_6_out, lava_7_out, lava_8_out, lava_9_out, lava_10_out)
         .collect()
 
-    MergeLAVA(all_lava_outputs, run_id)
+    merged_lava = MergeLAVA(all_lava_outputs, run_id)
+
+    // Step 9: Cleanup stratified LAVA results, keeping only merged files
+    merge_done = merged_lava.rds.collect().map { true }
+    CleanupLAVA(merge_done)
+
+    // Step 10: Run coloc on significant LAVA bivariate results (if enabled)
+    if (params.coloc == true) {
+        Coloc(merge_done, run_id)
+    }
 }
