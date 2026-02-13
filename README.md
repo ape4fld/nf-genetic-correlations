@@ -168,7 +168,7 @@ The pipeline expects this structure relative to where your `main_full.nf` file i
 
 Once you've completed the setup and configuration, you can run the pipeline:
 
-### For Alliance Canada/Béluga Users:
+### For Alliance Canada Users:
 
 1. **Edit the SLURM script** (`run_nextflow.sh`):
    - Replace `def-xxxxx` with your compute allocation
