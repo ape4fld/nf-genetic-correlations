@@ -82,9 +82,11 @@ all_rg <-
     h2_int_se,
     gcov_int,
     gcov_int_se
-  ) %>% distinct(., p1, p2, .keep_all = TRUE)
+  ) %>% distinct(., p1, p2, .keep_all = TRUE) %>%
+  dplyr::filter(p1 %in% info$phenotype) %>%
+  dplyr::filter(p2 %in% info$phenotype)
 
-phenotypes <- c(all_rg$p1, all_rg$p2) %>% unique()
+phenotypes <- info$phenotype
 
 ###### Creating sample overlap matrix by extracting the intercept from LDSC results ######
 
