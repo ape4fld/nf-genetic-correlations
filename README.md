@@ -3,6 +3,7 @@
 **Nextflow pipeline for global and regional genetic correlations using GWAS summary statistics**  
 Supports **LDSC** for genome-wide correlations and **LAVA** for local (regional) genetic correlations.
 
+The users can also follow-up the significant LAVA loci with Bayesian colocalization with **coloc**, to assess if there is a single shared causal variant.
 ---
 
 ## 📖 Overview
@@ -11,15 +12,17 @@ This pipeline processes **harmonized GWAS summary statistics** (restricted to **
 
 - **Global genetic correlations** using [LDSC](https://github.com/bulik/ldsc)  
 - **Local genetic correlations** using [LAVA](https://github.com/josefin-werme/LAVA)
+- **Bayesian colocalization** (optional; if enabled by user) using [coloc](https://chr1swallace.github.io/coloc/)
 
-It will also compute the SNP-based heritability for each of the GWAS summary statistics. For LAVA, it will perform the univariate test for each trait across all loci, and will compute the local genetic correlations (i.e., bivariate test) for pairs of traits which univariate test is significant (0.05/number of loci tested).
+It will also compute the SNP-based heritability for each of the GWAS summary statistics with LDSC. For LAVA, it will perform the univariate test for each trait across all loci, and will compute the local genetic correlations (i.e., bivariate test) for pairs of traits which univariate test is significant (0.05/number of loci tested). Optionally, the user can enable the pipeline to perform colocalization with the R package coloc, across loci with significant regional genetic correlations (details below).
 
 There are several advantages of using the pipeline:
-1) Given that it uses an LDSC .sif image, there is no need to load old python versions to run LDSC.
+1) Given that it uses an LDSC .sif image, there is no need to load old python versions (< v3) to run LDSC.
 2) The pipeline formats and adapts the GWAS summary statistics for each tool.
 3) The user does not need to prepare additional files to run LAVA (e.g., sample overlap file or info file).
-4) It partitions LAVA loci so that they run in parallel, which significantly reduces the running time.
-5) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
+4) It partitions LAVA loci so that they all run in parallel, which significantly reduces the running time.
+5) Easily streamlines the analysis to uncover pleiotropy and shared loci across various phenotypes/diseases.
+6) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
 
 ---
 
@@ -39,6 +42,7 @@ Some R packages need to be pre-installed in R version 4.3.1:
 - Tidyverse: dplyr, tidyr, stringr, readr
 - Others: here, data.table
 - LAVA (```R via remotes::install_github()```)
+- coloc (optional)
 
 In Alliance Canada, you can follow these steps:
 
@@ -46,7 +50,7 @@ In Alliance Canada, you can follow these steps:
 module load StdEnv/2023 r/4.3.1
 mkdir -p ~/.local/R/$EBVERSIONR/
 export R_LIBS=~/.local/R/$EBVERSIONR/
-R -e 'install.packages(c("dplyr", "tidyr", "stringr", "readr", "here", "data.table"), repos="https://cloud.r-project.org/")'
+R -e 'install.packages(c("dplyr", "tidyr", "stringr", "readr", "here", "data.table", "coloc"), repos="https://cloud.r-project.org/")'
 R -e 'remotes::install_github("josefin-werme/LAVA")'
 ```
 
@@ -71,12 +75,12 @@ variant_id, effect_allele, other_allele, beta, standard_error, p_value, N
 
 Create a single file named `metadata.txt`, tab-separated, with the following columns:
 
-| Column     | Description                                      |
-|------------|--------------------------------------------------|
-| `dataset`  | Short name for each dataset                      |
-| `filename` | File name of the GWAS summary statistics file    |
-| `N`        | Total sample size (use max if per-variant varies)|
-| `cases`    | Number of cases (use `NA` for continuous traits) |
+| Column     | Description                                        |
+|------------|----------------------------------------------------|
+| `dataset`  | Short name for each dataset                        |
+| `filename` | File name of the GWAS summary statistics file      |
+| `N`        | Total sample size (use max if per-variant varies)  |
+| `cases`    | Number of cases (use `NA` for continuous traits)   |
 | `controls` | Number of controls (use `NA` for continuous traits)|
 
 - Store the metadata file at:
@@ -147,7 +151,7 @@ process.clusterOptions = '--account=def-xxxxx'  // Replace with your allocation
 
 #### ⏱️ Time Considerations for LAVA:
 
-The LAVA process is currently set to 6 hours, which works well for 2-3 datasets. However, **running time increases significantly** with more datasets due to pairwise comparisons:
+The LAVA process is currently set to 5 hours, which works well for 4-5 phenotypes. However, **running time increases** with more datasets due to pairwise comparisons:
 - 3 datasets = 3 pairs
 - 5 datasets = 10 pairs  
 - 10 datasets = 45 pairs
@@ -155,7 +159,7 @@ The LAVA process is currently set to 6 hours, which works well for 2-3 datasets.
 To adjust the time limit, modify in `nextflow.config`:
 ```nextflow
 withLabel: lava {
-    time = "23h"  // Increase for larger analyses
+    time = "5h"  // Increase for larger analyses
 }
 ```
 
@@ -179,8 +183,10 @@ Once you've completed the setup and configuration, you can run the pipeline:
    | --run_id   | Give the specific run a prefix (optional)        |
    | --metadata | Provide a different name to the metadata file (optional - default: metadata.txt) |
    | --lava-ref | Speficy LD reference for LAVA (optional; UKB or 1KGP_EUR - default: UKB) |
+   | --coloc    | To include colocalization follow-up (optional; true or false - default: false) |
+   | --pvalue_LAVA_coloc | Provide p-value cutoff to define a significant local genetic correlation (for use with --coloc) (optional; - default: 0.05) |
 
-2. **Submit the job**:
+3. **Submit the job**:
    ```bash
    sbatch run_nextflow.sh
    ```
@@ -199,7 +205,11 @@ The pipeline will:
 - Process your GWAS summary statistics
 - Calculate global genetic correlations using LDSC
 - Calculate local genetic correlations using LAVA
+- Optionally perform colocalization analysis using coloc R package
 - Output results to the `results/` directory
+
+  4. **coloc**:
+     If performing colocalization analysis, use the ```--coloc true``` flag, and optionally the user can also define the p-value cutoff for the LAVA genetic correlations with ```--pvalue_LAVA_coloc 0.05```, so that only those loci that pass the cutoff will be assessed in colocalization (the default is 0.05, but it is recommended to use a stricter approach).
 
 ---
 
@@ -219,8 +229,11 @@ results/
 │   ├── *.rg_results           # Pairwise genetic correlations
 │   └── all_rg_results.tsv     # Combined results table
 └── LAVA/                      # Local genetic correlations
-    ├── *univ.lava.tsv         # Univariate test results (one line per trait) - also writes an .rds file
-    └── *bivar.lava.tsv        # Bivariate test results (one line per trait pair) - also writes an .rds file
+│   ├── *univ.lava.tsv         # Univariate test results (one line per trait)
+│   └── *bivar.lava.tsv        # Bivariate test results (one line per trait pair)
+└── coloc/ (optional)
+    ├── *coloc_all.txt         # Coloc results (one line per variant assessed across traits and loci)
+    └── *coloc_summary.txt     # Coloc summary results (one line per locus)
 
 data/LAVA/                     # LAVA input files
 ├── info_file.txt              # Trait information
