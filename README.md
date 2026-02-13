@@ -1,9 +1,8 @@
 # 🧬 nf-genetic-correlations
 
 **Nextflow pipeline for global and regional genetic correlations using GWAS summary statistics**  
-Supports **LDSC** for genome-wide correlations and **LAVA** for local (regional) genetic correlations.
+Supports **LDSC** for genome-wide correlations and **LAVA** for local (regional) genetic correlations. The users can also follow-up the significant LAVA loci with Bayesian colocalization with **coloc**, to assess if there is a single shared causal variant.
 
-The users can also follow-up the significant LAVA loci with Bayesian colocalization with **coloc**, to assess if there is a single shared causal variant.
 ---
 
 ## 📖 Overview
