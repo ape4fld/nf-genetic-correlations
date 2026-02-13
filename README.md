@@ -88,7 +88,7 @@ Create a single file named `metadata.txt`, tab-separated, with the following col
  ```bash
 /genetic_correlations/data/
 ```
-**Note:** an example of 'metadata.txt' is included, which can be edited. Additionally, if the user wants to run the analysis across a subset of the GWAS datasets, it is possible to do so by creating a new metadata file including only those datasets (and specify the file name with the --metadata flag - see  ```run_nextflow.sh```).
+**Note:** an example of [metadata.txt](https://github.com/ape4fld/nf-genetic-correlations/blob/main/data/metadata.txt) is included, which can be edited. Additionally, if the user wants to run the analysis across a subset of the GWAS datasets, it is possible to do so by creating a new metadata file including only those datasets (and specify the file name with the --metadata flag - see  below '🚀 Running the Pipeline').
 
 #### 📦 c) LD Reference Files
 
@@ -137,11 +137,11 @@ mv ldsc_latest.sif bin/
 
 ---
 
-The pipeline uses **relative paths** by default, making it portable across different systems. The configuration is set up for **Alliance Canada clusters** but can be adapted for other environments.
+The pipeline uses **relative paths** by default, making it portable across different systems. The configuration is set up for **[Digital Research Alliance Canada](https://www.alliancecan.ca/en) clusters** but can be adapted for other environments.
 
 #### Minimal Configuration Required:
 
-1. **For Alliance Canada users**, update the SLURM account:
+1. **For Digital Research Alliance Canada users**, update the SLURM account in the [Nextflow config file](https://github.com/ape4fld/nf-genetic-correlations/blob/main/nextflow.config):
 ```nextflow
 process.clusterOptions = '--account=def-xxxxx'  // Replace with your allocation
 ```
@@ -157,7 +157,7 @@ The LAVA process is currently set to 5 hours, which works well for 4-5 phenotype
 - 5 datasets = 10 pairs  
 - 10 datasets = 45 pairs
 
-To adjust the time limit, modify in `nextflow.config`:
+To adjust the time limit, modify in the [Nextflow config file](https://github.com/ape4fld/nf-genetic-correlations/blob/main/nextflow.config):
 ```nextflow
 withLabel: lava {
     time = "5h"  // Increase for larger analyses
@@ -165,7 +165,7 @@ withLabel: lava {
 ```
 
 #### Default Directory Structure:
-The pipeline expects this structure relative to where your `main_full.nf` file is located.
+The pipeline expects this structure relative to where your [main_full.nf](https://github.com/ape4fld/nf-genetic-correlations/blob/main/main_full.nf) file is located.
 
 ---
 
@@ -175,7 +175,7 @@ Once you've completed the setup and configuration, you can run the pipeline:
 
 ### For Alliance Canada Users:
 
-1. **Edit the SLURM script** (`run_nextflow.sh`):
+1. **Edit the SLURM script** [run_nextflow.sh](https://github.com/ape4fld/nf-genetic-correlations/blob/main/run_nextflow.sh):
    - Replace `def-xxxxx` with your compute allocation
    - Options in Nextflow command (see ```run_nextflow.sh``` for an example):
      
