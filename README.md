@@ -7,6 +7,8 @@ Supports **LDSC** for genome-wide correlations and **LAVA** for local (regional)
 
 ## 📖 Overview
 
+Take a look at the [workflow diagram](https://github.com/ape4fld/nf-genetic-correlations/blob/main/workflow.jpg) for a visual overview.
+
 This pipeline processes **harmonized GWAS summary statistics** (restricted to **European ancestry** for now) and computes:
 
 - **Global genetic correlations** using [LDSC](https://github.com/bulik/ldsc)  
