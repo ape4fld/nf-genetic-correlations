@@ -178,12 +178,12 @@ Once you've completed the setup and configuration, you can run the pipeline:
    - Replace `def-xxxxx` with your compute allocation
    - Options in Nextflow command (see ```run_nextflow.sh``` for an example):
      
-   | Option     | Description                                      |
-   |------------|--------------------------------------------------|
-   | --run_id   | Give the specific run a prefix (optional)        |
-   | --metadata | Provide a different name to the metadata file (optional - default: metadata.txt) |
-   | --lava-ref | Speficy LD reference for LAVA (optional; UKB or 1KGP_EUR - default: UKB) |
-   | --coloc    | To include colocalization follow-up (optional; true or false - default: false) |
+   | Option              | Description                                      |
+   |---------------------|--------------------------------------------------|
+   | --run_id            | Give the specific run a prefix (optional)        |
+   | --metadata          | Provide a different name to the metadata file (optional - default: metadata.txt) |
+   | --lava-ref          | Speficy LD reference for LAVA (optional; UKB or 1KGP_EUR - default: UKB) |
+   | --coloc             | To include colocalization analysis follow-up (optional; true or false - default: false) |
    | --pvalue_LAVA_coloc | Provide p-value cutoff to define a significant local genetic correlation (for use with --coloc) (optional; - default: 0.05) |
 
 3. **Submit the job**:
@@ -207,10 +207,7 @@ The pipeline will:
 - Calculate local genetic correlations using LAVA
 - Optionally perform colocalization analysis using coloc R package
 - Output results to the `results/` directory
-
-  4. **coloc**:
-     If performing colocalization analysis, use the ```--coloc true``` flag, and optionally the user can also define the p-value cutoff for the LAVA genetic correlations with ```--pvalue_LAVA_coloc 0.05```, so that only those loci that pass the cutoff will be assessed in colocalization (the default is 0.05, but it is recommended to use a stricter approach).
-
+  
 ---
 
 ## 📊 Expected Outputs
