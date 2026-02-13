@@ -23,8 +23,6 @@ There are several advantages of using the pipeline:
 5) Easily streamlines the analysis to uncover pleiotropy and shared loci across various phenotypes/diseases.
 6) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
 
-![workflow](https://github.com/user-attachments/assets/fb960c66-62ad-4618-911d-5a5b92585fa6)
-
 ---
 
 ## 🚀 Getting Started
