@@ -11,19 +11,16 @@ Take a look at the [workflow diagram](https://github.com/ape4fld/nf-genetic-corr
 
 This pipeline processes **harmonized GWAS summary statistics** (restricted to **European ancestry** for now) and computes:
 
-- **Global genetic correlations** using [LDSC](https://github.com/bulik/ldsc)  
-- **Local genetic correlations** using [LAVA](https://github.com/josefin-werme/LAVA)
-- **Bayesian colocalization** (optional; if enabled by user) using [coloc](https://chr1swallace.github.io/coloc/)
-
-It will also compute the SNP-based heritability for each of the GWAS summary statistics with LDSC. For LAVA, it will perform the univariate test for each trait across all loci, and will compute the local genetic correlations (i.e., bivariate test) for pairs of traits which univariate test is significant (0.05/number of loci tested). Optionally, the user can enable the pipeline to perform colocalization with the R package coloc, across loci with significant regional genetic correlations (details below).
+- **Global genetic correlations** using [LDSC](https://github.com/bulik/ldsc) (also computes SNP-based heritability)
+- **Local genetic correlations** using [LAVA](https://github.com/josefin-werme/LAVA) (computes univariate and bivariate tests)
+- **Bayesian colocalization** (optional; if enabled by user) using [coloc](https://chr1swallace.github.io/coloc/) (optional; across loci with significant regional genetic correlations)
 
 There are several advantages of using the pipeline:
 1) Given that it uses an LDSC .sif image, there is no need to load old python versions (< v3) to run LDSC.
 2) The pipeline formats and adapts the GWAS summary statistics for each tool.
-3) The user does not need to prepare additional files to run LAVA (e.g., sample overlap file or info file).
+3) The user does not need to prepare additional files, other than a metadata file.
 4) It partitions LAVA loci so that they all run in parallel, which significantly reduces the running time.
-5) Easily streamlines the analysis to uncover pleiotropy and shared loci across various phenotypes/diseases.
-6) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
+5) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
 
 ---
 
@@ -183,7 +180,7 @@ Once you've completed the setup and configuration, you can run the pipeline:
    |---------------------|--------------------------------------------------|
    | --run_id            | Give the specific run a prefix (optional)        |
    | --metadata          | Provide a different name to the metadata file (optional - default: metadata.txt) |
-   | --lava-ref          | Speficy LD reference for LAVA (optional; UKB or 1KGP_EUR - default: UKB) |
+   | --lava-ref          | Specify LD reference for LAVA (optional; UKB or 1KGP_EUR - default: UKB) |
    | --coloc             | To include colocalization analysis follow-up (optional; true or false - default: false) |
    | --pvalue_LAVA_coloc | Provide p-value cutoff to define a significant local genetic correlation (for use with --coloc) (optional; - default: 0.05) |
 
@@ -202,11 +199,11 @@ nextflow run main_full.nf -profile <your_profile> -resume \
      --lava_ref 'UKB'
 ```
 
-The pipeline will:
+The nf-genetic-correlations pipeline will:
 - Process your GWAS summary statistics
 - Calculate global genetic correlations using LDSC
-- Calculate local genetic correlations using LAVA
-- Optionally perform colocalization analysis using coloc R package
+- Calculate local genetic correlations using LAVA (the bivariate test is only performed for loci that passed a Bonferroni-corrected univariate test (i.e., pvalue < 0.05/2,945))
+- Optionally perform colocalization analysis using coloc R package (performed for pairs of traits with significant local genetic correlations (significance defined by the user)
 - Output results to the `results/` directory
   
 ---
