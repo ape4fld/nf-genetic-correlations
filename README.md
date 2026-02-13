@@ -101,7 +101,7 @@ Place contents in:
 ```
 
 2. **1000 Genomes Reference or UK Biobank reference (for LAVA)**
-Download European PLINK reference files as described in the LAVA reference guide or download UK Biobank reference files as described in the LAVA reference guide. Note that LAVA developers highly recommend to use the UK Biobank reference file.
+Download European PLINK reference files as described in the LAVA reference guide or download UK Biobank reference files as described in the LAVA reference guide. Note that LAVA developers [highly recommend to use the UK Biobank reference file](https://www.preprints.org/manuscript/202507.0966).
 
 Place 1000 Genomes Reference contents in:
  ```bash
