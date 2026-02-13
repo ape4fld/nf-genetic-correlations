@@ -60,7 +60,8 @@ if (nrow(test_loci) == 0) {
 }
 
 for (i in 1:nrow(test_loci)) {
-
+    
+    locus = test_loci$locus[i]
     chromosome = test_loci$chr[i]
     start_pos = test_loci$start[i]
     end_pos = test_loci$stop[i]
@@ -195,7 +196,7 @@ for (i in 1:nrow(test_loci)) {
 
     coloc_results_summ[[i]] <- coloc_results$summary
     coloc_results_res[[i]] <- coloc_results$results
-    trait_pairs[i] = stringr::str_c(phen1, "_", phen2)
+    trait_pairs[i] = stringr::str_c(locus, "::", chromosome, "::", start_pos, "::", end_pos, "::", phen1, "::", phen2)
 
 }
 
@@ -203,7 +204,9 @@ coloc_summ_df <- setNames(coloc_results_summ, nm = trait_pairs)
 coloc_res_df <- setNames(coloc_results_res, nm = trait_pairs)
 
 coloc_summ_df %>% dplyr::bind_rows(., .id = "Traits") %>%
+    tidyr::separate(., Traits, c("locus", "chr", "start_locus", "end_locus", "phen1", "phen2"), sep = "::") %>%
     write.table(., stringr::str_c(file_prefix, "coloc_summary.txt"), sep = "\t", row.names = F, quote = F)
 
 coloc_res_df %>% dplyr::bind_rows(., .id = "Traits") %>%
+    tidyr::separate(., Traits, c("locus", "chr", "start_locus", "end_locus", "phen1", "phen2"), sep = ":") %>%
     write.table(., stringr::str_c(file_prefix, "coloc_all.txt"), sep = "\t", row.names = F, quote = F)
