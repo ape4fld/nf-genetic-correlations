@@ -228,7 +228,7 @@ results/
 └── LAVA/                      # Local genetic correlations
 │   ├── *univ.lava.tsv         # Univariate test results (one line per trait)
 │   └── *bivar.lava.tsv        # Bivariate test results (one line per trait pair)
-└── coloc/ (optional)
+└── coloc/                     # Colocalization results, if enabled by user
     ├── *coloc_all.txt         # Coloc results (one line per variant assessed across traits and loci)
     └── *coloc_summary.txt     # Coloc summary results (one line per locus)
 
