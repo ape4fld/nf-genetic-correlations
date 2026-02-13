@@ -22,7 +22,7 @@ WORK_DIR="${SLURM_SUBMIT_DIR}"
 
 # Run nextflow from the submission directory
 cd "${WORK_DIR}"
-nextflow run main_full.nf -profile beluga -resume \
+nextflow run main_full.nf -profile rorqual -resume \
     --run_id analysis1 \
     --metadata ${WORK_DIR}/data/metadata.txt \
     --lava_ref 'UKB'
