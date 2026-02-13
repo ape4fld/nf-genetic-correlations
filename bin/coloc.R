@@ -208,5 +208,5 @@ coloc_summ_df %>% dplyr::bind_rows(., .id = "Traits") %>%
     write.table(., stringr::str_c(file_prefix, "coloc_summary.txt"), sep = "\t", row.names = F, quote = F)
 
 coloc_res_df %>% dplyr::bind_rows(., .id = "Traits") %>%
-    tidyr::separate(., Traits, c("locus", "chr", "start_locus", "end_locus", "phen1", "phen2"), sep = ":") %>%
+    tidyr::separate(., Traits, c("locus", "chr", "start_locus", "end_locus", "phen1", "phen2"), sep = "::") %>%
     write.table(., stringr::str_c(file_prefix, "coloc_all.txt"), sep = "\t", row.names = F, quote = F)
