@@ -236,5 +236,4 @@ data/LAVA/                     # LAVA input files
 ```
 
 ### Questions or issues:
-Please [open an issue](https://github.com/ape4fld/nf-genetic-correlations/issues) if you have questions about this Nextflow pipeline, if you encounter problems or if you find a bug!
-Remember to include your input and output for easier debugging; the more information the better.
+Please [open an issue](https://github.com/ape4fld/nf-genetic-correlations/issues) if you have questions/suggestions about this Nextflow pipeline, if you encounter problems or if you find a bug! Remember to include your input and output for easier debugging; the more information the better.
