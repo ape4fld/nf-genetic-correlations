@@ -235,8 +235,6 @@ data/LAVA/                     # LAVA input files
 └── sample_overlap.txt         # Sample overlap matrix
 ```
 
-### Key Output Files:
-
-- **`all_rg_results.tsv`**: Summary table with all global genetic correlations (rg), standard errors, p-values, and heritability estimates
-- **`local_rg_*_univ.lava.tsv`**: Local heritability and association p-values for each genomic locus per trait
-- **`local_rg_*_bivar.lava.tsv`**: Local genetic correlations between trait pairs at specific loci where both traits show significant univariate signals
+### Questions or issues:
+Please [open an issue](https://github.com/ape4fld/nf-genetic-correlations/issues) if you have questions about this Nextflow pipeline, if you encounter problems or if you find a bug!
+Remember to include your input and output for easier debugging; the more information the better.
