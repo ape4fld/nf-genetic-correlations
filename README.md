@@ -35,7 +35,37 @@ cd nf-genetic-correlations
 
 ### 2. Dependencies
 
-Some R packages need to be pre-installed in R version 4.3.1:
+### a) 📦 LDSC Apptainer/Singularity Image
+
+---
+
+Download the LDSC container image from Zenodo:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15920751.svg)](https://doi.org/10.5281/zenodo.15920751)
+
+```bash
+# Download the image (1.2GB)
+wget https://zenodo.org/records/15920751/files/ldsc_latest.sif
+# Place it in the bin/ directory
+mv ldsc_latest.sif bin/
+```
+
+### b) 📦 R environment Apptainer/Singularity Image
+
+---
+
+Download the R container image from Zenodo:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18683118.svg)](https://doi.org/10.5281/zenodo.18683118)
+
+```bash
+# Download the image (420Mb)
+wget https://zenodo.org/records/18683118/files/r_packages.sif
+# Place it in the bin/ directory
+mv r_packages.sif bin/
+```
+
+## Alternatively, you can manually install the R packages (R version > 4.1):
 
 - Tidyverse: dplyr, tidyr, stringr, readr
 - Others: here, data.table
@@ -115,22 +145,7 @@ Place UK Biobank reference contents in:
 ```
 Note: The default LD reference file that is used is the UK Biobank, but the user can specify the LD source with the --lava_ref flag (options: 1KGP_EUR or UKB) - see ```run_nextflow.sh```).
 
-### 4. 📦 LDSC Apptainer/Singularity Image
-
----
-
-Download the LDSC container image from Zenodo:
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15920751.svg)](https://doi.org/10.5281/zenodo.15920751)
-
-```bash
-# Download the image (1.2GB)
-wget https://zenodo.org/records/15920751/files/ldsc_latest.sif
-# Place it in the bin/ directory
-mv ldsc_latest.sif bin/
-```
-
-### 5. ⚙️ Nextflow Configuration
+### 4. ⚙️ Nextflow Configuration
 
 ---
 
