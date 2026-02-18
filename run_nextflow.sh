@@ -9,7 +9,6 @@
 module load StdEnv/2023
 module load java/21.0.1
 module load nextflow/24.10.2
-module load r/4.3.1
 module load apptainer/1.3.5
 
 export R_LIBS=~/.local/R/4.3.1/
