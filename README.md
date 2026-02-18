@@ -65,7 +65,7 @@ wget https://zenodo.org/records/18683118/files/r_packages.sif
 mv r_packages.sif bin/
 ```
 
-## Alternatively, you can manually install the R packages (R version > 4.1):
+### Alternatively, you can manually install the R packages (R version > 4.1):
 
 - Tidyverse: dplyr, tidyr, stringr, readr
 - Others: here, data.table
