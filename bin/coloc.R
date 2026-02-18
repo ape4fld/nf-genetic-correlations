@@ -62,7 +62,7 @@ if (nrow(test_loci) == 0) {
 for (i in 1:nrow(test_loci)) {
     
     locus = test_loci$locus[i]
-    chromosome = test_loci$chr[i]
+    chr = test_loci$chr[i]
     start_pos = test_loci$start[i]
     end_pos = test_loci$stop[i]
     phen1 = test_loci$phen1[i]
@@ -94,21 +94,40 @@ for (i in 1:nrow(test_loci)) {
           next                                                                                                
       }
 
+    # check columns in summary statistics:
+    cols_expected = c("chromosome", "base_pair_location", "variant_id", "effect_allele", "other_allele", "beta", "standard_error", "p_value")
+
     # phen1
-    phen1_sumstats <- fread(phen1_file) %>%
-        dplyr::filter(., CHR == chromosome & BP >= start_pos & BP <= end_pos) %>%
-        mutate(., N = metadata_phen1$N[1],
-                  varbeta = standard_error^2) %>%
-        dplyr::filter(., !is.na(variant_id)) %>%
-        distinct(., variant_id, .keep_all = TRUE)
+    phen1_sumstats <- fread(phen1_file) 
+    check_colnames <- cols_expected %in% colnames(phen1_sumstats)
+    
+    if ("FALSE" %in% check_colnames == TRUE) {
+        stop(stringr::str_c("The summary statistics for ", phen1," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\n
+            chromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+    } else {
+        phen1_sumstats <- phen1_sumstats %>%
+            dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
+            mutate(., N = metadata_phen1$N[1],
+                    varbeta = standard_error^2) %>%
+            dplyr::filter(., !is.na(variant_id)) %>%
+            distinct(., variant_id, .keep_all = TRUE)
+    }
 
     # phen2
-    phen2_sumstats <- fread(phen2_file) %>%
-        dplyr::filter(., CHR == chromosome & BP >= start_pos & BP <= end_pos) %>%
-        mutate(., N = metadata_phen2$N[1],
-                  varbeta = standard_error^2) %>%
-        dplyr::filter(., !is.na(variant_id)) %>%
-        distinct(., variant_id, .keep_all = TRUE)
+    phen2_sumstats <- fread(phen2_file)
+    check_colnames <- cols_expected %in% colnames(phen2_sumstats)
+    
+    if ("FALSE" %in% check_colnames == TRUE) {
+        stop(stringr::str_c("The summary statistics for ", phen2," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\n
+            chromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+    } else {
+        phen2_sumstats <- phen2_sumstats %>%
+            dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
+            mutate(., N = metadata_phen2$N[1],
+                    varbeta = standard_error^2) %>%
+            dplyr::filter(., !is.na(variant_id)) %>%
+            distinct(., variant_id, .keep_all = TRUE)
+    }
 
     # Run coloc depending on which trait is quantitative or case/control
     # Assumes variance (dY) for quantitative traits = 1
@@ -196,7 +215,7 @@ for (i in 1:nrow(test_loci)) {
 
     coloc_results_summ[[i]] <- coloc_results$summary
     coloc_results_res[[i]] <- coloc_results$results
-    trait_pairs[i] = stringr::str_c(locus, "::", chromosome, "::", start_pos, "::", end_pos, "::", phen1, "::", phen2)
+    trait_pairs[i] = stringr::str_c(locus, "::", chr, "::", start_pos, "::", end_pos, "::", phen1, "::", phen2)
 
 }
 
