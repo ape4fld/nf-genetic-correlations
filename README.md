@@ -74,7 +74,13 @@ mv r_packages.sif bin/
 - Accepted formats: `.tsv`, `.csv`, `.txt`, etc.
 - Required columns (**column names must match exactly**, order can vary and other columns will be ignored):
   
- **variant_id, effect_allele, other_allele, beta, standard_error, p_value, N**
+ **`variant_id`**
+ **`effect_allele`**
+ **`other_allele`**
+ **`beta`**
+ **`standard_error`**
+ **`p_value`**
+ **`N`**
 
 > ⚠️ `variant_id` must be rsIDs. This pipeline is optimized for harmonized summary stats from the [GWAS Catalog](https://www.ebi.ac.uk/gwas/).
 
