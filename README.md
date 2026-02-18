@@ -65,23 +65,6 @@ wget https://zenodo.org/records/18683118/files/r_packages.sif
 mv r_packages.sif bin/
 ```
 
-### Alternatively, you can manually install the R packages (R version > 4.1):
-
-- Tidyverse: dplyr, tidyr, stringr, readr
-- Others: here, data.table
-- LAVA (```R via remotes::install_github()```)
-- coloc (optional)
-
-In Alliance Canada, you can follow these steps:
-
-```bash
-module load StdEnv/2023 r/4.3.1
-mkdir -p ~/.local/R/$EBVERSIONR/
-export R_LIBS=~/.local/R/$EBVERSIONR/
-R -e 'install.packages(c("dplyr", "tidyr", "stringr", "readr", "here", "data.table", "coloc"), repos="https://cloud.r-project.org/")'
-R -e 'remotes::install_github("josefin-werme/LAVA")'
-```
-
 ### 3. Inputs Required
 
 ---
