@@ -175,11 +175,12 @@ Once you've completed the setup and configuration, you can run the pipeline:
    - Options in Nextflow command (see ```run_nextflow.sh``` for an example).
    - All flags are optional.
      
+     
    | Flag                | Description                                      | Default    |
    |---------------------|--------------------------------------------------|------------|
    | --run_id            | Give the specific run a prefix | no prefix |
    | --metadata          | Provide a different name to the metadata file | metadata.txt |
-   | --lava-ref          | Specify LD reference for LAVA (KGP_EUR or UKB) | UKB |
+   | --lava-ref          | Specify LD reference for LAVA (1KGP_EUR or UKB) | UKB |
    | --coloc             | Include colocalization analysis (true or false) | false |
    | --pvalue_LAVA_coloc | Provide p-value cutoff for a significant local genetic correlation (for use with --coloc) | 0.05 |
 
