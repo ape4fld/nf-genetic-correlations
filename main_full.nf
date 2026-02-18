@@ -45,6 +45,8 @@ Channel
     .set { rg_dir_ch }
 
 process FormatSumstats {
+    label 'r_env'
+
     input:
     tuple path(file), val(sampleN), val(suffixName)
 
@@ -106,6 +108,8 @@ process RunLDSC_h2 {
 }
 
 process PrepRg {
+    label 'r_env'
+
     input:
     val ready  // signal that munging is complete
     val run_id
@@ -147,6 +151,7 @@ process RunLDSC_rg {
 }
 
 process PrepLAVA {
+    label 'r_env'
 
     input:
     path rg_dir
@@ -391,6 +396,7 @@ process RunLAVA_10 {
 }
 
 process MergeLAVA {
+    label 'r_env'
 
     input:
     path lava_rds_files
@@ -425,6 +431,7 @@ process CleanupLAVA {
 }
 
 process Coloc {
+    label 'r_env'
 
     input:
     val lava_done
