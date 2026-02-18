@@ -172,15 +172,16 @@ Once you've completed the setup and configuration, you can run the pipeline:
 
 1. **Edit the SLURM script** [run_nextflow.sh](https://github.com/ape4fld/nf-genetic-correlations/blob/main/run_nextflow.sh):
    - Replace `def-xxxxx` with your compute allocation
-   - Options in Nextflow command (see ```run_nextflow.sh``` for an example):
+   - Options in Nextflow command (see ```run_nextflow.sh``` for an example).
+   - All flags are optional.
      
-   | Option              | Description                                      |
-   |---------------------|--------------------------------------------------|
-   | --run_id            | Give the specific run a prefix (optional)        |
-   | --metadata          | Provide a different name to the metadata file (optional - default: metadata.txt) |
-   | --lava-ref          | Specify LD reference for LAVA (optional; UKB or 1KGP_EUR - default: UKB) |
-   | --coloc             | To include colocalization analysis follow-up (optional; true or false - default: false) |
-   | --pvalue_LAVA_coloc | Provide p-value cutoff to define a significant local genetic correlation (for use with --coloc) (optional; - default: 0.05) |
+   | Flag                | Description                                      | Default    |
+   |---------------------|--------------------------------------------------|------------|
+   | --run_id            | Give the specific run a prefix | no prefix |
+   | --metadata          | Provide a different name to the metadata file | metadata.txt |
+   | --lava-ref          | Specify LD reference for LAVA (KGP_EUR or UKB) | UKB |
+   | --coloc             | Include colocalization analysis (true or false) | false |
+   | --pvalue_LAVA_coloc | Provide p-value cutoff for a significant local genetic correlation (for use with --coloc) | 0.05 |
 
 3. **Submit the job**:
    ```bash
