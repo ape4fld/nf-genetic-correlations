@@ -91,7 +91,7 @@ mv r_packages.sif bin/
 > ⚠️ `variant_id` must be rsIDs. This pipeline is optimized for harmonized summary stats from the [GWAS Catalog](https://www.ebi.ac.uk/gwas/).
 
 
-> ⚠️  If you plan to run colocalization analysis too, then you'll need two other columns in the GWAS summary statistics: **`chromosome`** and **`base_pair_location`**. Please make sure that **all summary statistics are in the same genome build** (no matter which build). 
+> ⚠️  If you plan to run colocalization analysis too, then you'll need two other columns in the GWAS summary statistics: **`chromosome`** and **`base_pair_location`**. Please make sure that **all summary statistics are in genome build GRCh37 (for compatibility with LAVA loci)**.
 
 - Store your files in:
 ```bash
