@@ -97,7 +97,7 @@ mv r_packages.sif bin/
 ```bash
 mkdir data/sumstats/
 # Store the files here:
-/genetic_correlations/data/sumstats/
+/nf-genetic-correlations/data/sumstats/
 ```
 
 #### 📝 b) Metadata File
@@ -112,9 +112,9 @@ Create a single file named `metadata.txt`, tab-separated, with the following col
 | `cases`    | Number of cases (use `NA` for continuous traits)   |
 | `controls` | Number of controls (use `NA` for continuous traits)|
 
-- Store the metadata file at:
+- Store the metadata file in:
  ```bash
-/genetic_correlations/data/
+/nf-genetic-correlations/data/
 ```
 **Note:** an example of [metadata.txt](https://github.com/ape4fld/nf-genetic-correlations/blob/main/data/metadata.txt) is included, which can be edited. Additionally, if the user wants to run the analysis across a subset of the GWAS datasets, it is possible to do so by creating a new metadata file including only those datasets (and specify the file name with the --metadata flag - see  below '🚀 Running the Pipeline').
 
@@ -124,25 +124,25 @@ Create a single file named `metadata.txt`, tab-separated, with the following col
  Download and extract:
 
  ```bash
- wget https://data.broadinstitute.org/alkesgroup/LDSCORE/eur_w_ld_chr.tar.bz2
- tar -xvjf eur_w_ld_chr.tar.bz2
+ wget -O 1000G_Phase3_ldscores.tgz https://zenodo.org/records/7768714/files/1000G_Phase3_ldscores.tgz?download=1
+ tar -xvzf 1000G_Phase3_ldscores.tgz
 ```
 
-Place contents in:
+Place /LDscore in ld_reference directory:
  ```bash
-/genetic_correlations/data/ld_reference/eur_w_ld_chr/
+mv LDscore/ ./data/ld_reference/
 ```
 
 2. **1000 Genomes Reference or UK Biobank reference (for LAVA)**
-Download European PLINK reference files as described in the LAVA reference guide or download UK Biobank reference files as described in the LAVA reference guide. Note that LAVA developers [highly recommend to use the UK Biobank reference file](https://www.preprints.org/manuscript/202507.0966).
+Download European PLINK reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md) or download UK Biobank reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md). Note that LAVA developers [highly recommend to use the UK Biobank reference file](https://www.preprints.org/manuscript/202507.0966).
 
 Place 1000 Genomes Reference contents in:
  ```bash
-/genetic_correlations/data/ld_reference/g1000_eur/
+/nf-genetic-correlations/data/ld_reference/g1000_eur/
 ```
 Place UK Biobank reference contents in:
  ```bash
-/genetic_correlations/data/ld_reference/ukb_eur/
+/nf-genetic-correlations/data/ld_reference/ukb_eur/
 ```
 Note: The default LD reference file that is used is the UK Biobank, but the user can specify the LD source with the --lava_ref flag (options: 1KGP_EUR or UKB) - see ```run_nextflow.sh```).
 
