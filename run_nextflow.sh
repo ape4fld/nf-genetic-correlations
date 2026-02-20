@@ -3,8 +3,8 @@
 #SBATCH --job-name=nextflow_run
 #SBATCH --output=slurm-%x.out
 #SBATCH --error=slurm-%x.err
-#SBATCH --time=12:00:00
-#SBATCH --mem=20G
+#SBATCH --time=23:59:59
+#SBATCH --mem=1G
 
 module load StdEnv/2023
 module load java/21.0.1
