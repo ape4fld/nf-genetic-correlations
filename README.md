@@ -93,8 +93,9 @@ mv r_packages.sif bin/
 
 > ⚠️  If you plan to run colocalization analysis too, then you'll need two other columns in the GWAS summary statistics: **`chromosome`** and **`base_pair_location`**. Please make sure that **all summary statistics are in genome build GRCh37 (for compatibility with LAVA loci)**.
 
-- Store your files in:
+- Create a directory to store your summary statistics files in:
 ```bash
+mkdir data/sumstats/
 /genetic_correlations/data/sumstats/
 ```
 
