@@ -127,7 +127,7 @@ Download the LD scores from Zenodo:
 
 ```bash
 # Download the compressed directory (65.9Mb)
-wget -O eur_w_ld_chr.tar.gz https://zenodo.org/records/18749273/files/eur_w_ld_chr.tar.gz?download=1
+wget -O eur_w_ld_chr.tar.gz https://zenodo.org/records/18749273/files/eur_w_ld_chr.tar.gz
 # Uncompress the directory
 tar -xf eur_w_ld_chr.tar.gz
 ```
