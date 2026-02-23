@@ -121,11 +121,17 @@ Create a single file named `metadata.txt`, tab-separated, with the following col
 #### 📦 c) LD Reference Files
 
 1. **LD Scores for LDSC**  
- Download and extract:
+Download the LD scores from Zenodo:
 
- ```bash
- wget -O 1000G_Phase3_ldscores.tgz https://zenodo.org/records/7768714/files/1000G_Phase3_ldscores.tgz?download=1
- tar -xvzf 1000G_Phase3_ldscores.tgz
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18749273.svg)](https://doi.org/10.5281/zenodo.18749273)
+
+```bash
+# Download the compressed directory (65.9Mb)
+wget -O eur_w_ld_chr.tar.gz https://zenodo.org/records/18749273/files/eur_w_ld_chr.tar.gz?download=1
+# Place it in the bin/ directory
+mv eur_w_ld_chr.tar.gz bin/
+# Uncompress the directory
+tar -xf eur_w_ld_chr.tar.gz
 ```
 
 Place /LDscore in ld_reference directory:
