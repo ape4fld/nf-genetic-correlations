@@ -169,7 +169,7 @@ process.clusterOptions = '--account=def-xxxxx'  // Replace with your allocation
 
 #### ⏱️ Time Considerations for LAVA:
 
-The LAVA process is currently set to 5 hours, which works well for 4-5 phenotypes. However, **running time increases** with more datasets due to pairwise comparisons:
+The LAVA process is currently set to 1 hour, which works well for 4-5 phenotypes. However, **running time increases** with more datasets due to pairwise comparisons:
 - 3 datasets = 3 pairs
 - 5 datasets = 10 pairs  
 - 10 datasets = 45 pairs
@@ -177,7 +177,7 @@ The LAVA process is currently set to 5 hours, which works well for 4-5 phenotype
 To adjust the time limit, modify in the [Nextflow config file](https://github.com/ape4fld/nf-genetic-correlations/blob/main/nextflow.config):
 ```nextflow
 withLabel: lava {
-    time = "5h"  // Increase for larger analyses
+    time = "1h"  // Increase for larger analyses
 }
 ```
 
