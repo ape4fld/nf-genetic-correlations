@@ -76,32 +76,33 @@ print(str_c("Merged ", nrow(bivar_df), " bivariate results"))
 # Extract base output name from first file (remove partition suffix)
 base_name <- str_replace(basename(univ_files[1]), "_part[0-9]+\\.univ\\.lava\\.rds$", "")
 
-# Save as RDS
-saveRDS(
+# Save as RDS and TSV:
+if (nrow(univar_df) > 0) {
+  saveRDS(
   univar_df,
-  file = str_c(base_name, ".univ.lava.rds")
-)
+  file = str_c(base_name, ".univ.lava.rds"))
 
-saveRDS(
-  bivar_df,
-  file = str_c(base_name, ".bivar.lava.rds")
-)
-
-# Also save as TSV for easy viewing
-write.table(
+  write.table(
   univar_df,
   file = str_c(base_name, ".univ.lava.tsv"),
   sep = "\t",
   row.names = FALSE,
-  quote = FALSE
-)
+  quote = FALSE)
+}
 
-write.table(
-  bivar_df,
-  file = str_c(base_name, ".bivar.lava.tsv"),
-  sep = "\t",
-  row.names = FALSE,
-  quote = FALSE
-)
+if (nrow(bivar_df) > 0) {
+  saveRDS(
+    bivar_df,
+    file = str_c(base_name, ".bivar.lava.rds")
+  )
+
+  write.table(
+    bivar_df,
+    file = str_c(base_name, ".bivar.lava.tsv"),
+    sep = "\t",
+    row.names = FALSE,
+    quote = FALSE
+  )
+}
 
 cat("LAVA results merged successfully!")
