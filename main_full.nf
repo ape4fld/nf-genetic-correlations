@@ -179,7 +179,7 @@ process RunLAVA_1 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -192,7 +192,7 @@ process RunLAVA_1 {
         Rscript ${params.bin_dir}/lava_1.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -201,7 +201,7 @@ process RunLAVA_2 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -214,7 +214,7 @@ process RunLAVA_2 {
         Rscript ${params.bin_dir}/lava_2.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -223,7 +223,7 @@ process RunLAVA_3 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -236,7 +236,7 @@ process RunLAVA_3 {
         Rscript ${params.bin_dir}/lava_3.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -245,7 +245,7 @@ process RunLAVA_4 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -258,7 +258,7 @@ process RunLAVA_4 {
         Rscript ${params.bin_dir}/lava_4.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -267,7 +267,7 @@ process RunLAVA_5 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -280,7 +280,7 @@ process RunLAVA_5 {
         Rscript ${params.bin_dir}/lava_5.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -289,7 +289,7 @@ process RunLAVA_6 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -302,7 +302,7 @@ process RunLAVA_6 {
         Rscript ${params.bin_dir}/lava_6.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -311,7 +311,7 @@ process RunLAVA_7 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -324,7 +324,7 @@ process RunLAVA_7 {
         Rscript ${params.bin_dir}/lava_7.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -333,7 +333,7 @@ process RunLAVA_8 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -346,7 +346,7 @@ process RunLAVA_8 {
         Rscript ${params.bin_dir}/lava_8.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -355,7 +355,7 @@ process RunLAVA_9 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -368,7 +368,7 @@ process RunLAVA_9 {
         Rscript ${params.bin_dir}/lava_9.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -377,7 +377,7 @@ process RunLAVA_10 {
     label 'lava'
 
     input:
-    path lava_data_dir
+    val ready
     val run_id
 
     output:
@@ -390,7 +390,7 @@ process RunLAVA_10 {
         Rscript ${params.bin_dir}/lava_10.R \
             ${ref_ld_chr} \
             ${params.locus_file} \
-            ${lava_data_dir} \
+            ${params.data_dir}/LAVA \
             ${run_id}
     """
 }
@@ -403,8 +403,8 @@ process MergeLAVA {
     val run_id
 
     output:
-    path("*.rds")
-    path("*.tsv")
+    path("*.rds"), emit: rds_files
+    path("*.tsv"), emit: tsv_files
 
     publishDir "${params.output_dir}/LAVA", mode: 'copy'
 
@@ -419,10 +419,7 @@ process MergeLAVA {
 process CleanupLAVA {
 
     input:
-    val ready  // signal that merging is complete
-
-    output:
-    val true
+    val ready
 
     script:
     """
@@ -434,7 +431,7 @@ process Coloc {
     label 'r_env'
 
     input:
-    val lava_done
+    val ready
     val run_id
 
     output:
@@ -466,7 +463,7 @@ workflow {
 
     // Step 4. Prepare pairs of traits for RunLDSC_rg
     // Wait for munging to complete, then generate pairs from metadata
-    munging_done = munged_sumstats.collect().map { true }
+    munging_done = munged_sumstats.collect()
 
     pairs_test = PrepRg(munging_done, run_id)
 
@@ -493,20 +490,18 @@ workflow {
     prep_lava = PrepLAVA(lava_input_ch, run_id)
 
     // Step 7: Run LAVA (10 partitions in parallel)
-    lava_data_ch = prep_lava.data_files
-        .collect()
-        .map { files -> "${params.data_dir}/LAVA" }
+    lava_ready = prep_lava.data_files.collect()
 
-    lava_1_out = RunLAVA_1(lava_data_ch, run_id)
-    lava_2_out = RunLAVA_2(lava_data_ch, run_id)
-    lava_3_out = RunLAVA_3(lava_data_ch, run_id)
-    lava_4_out = RunLAVA_4(lava_data_ch, run_id)
-    lava_5_out = RunLAVA_5(lava_data_ch, run_id)
-    lava_6_out = RunLAVA_6(lava_data_ch, run_id)
-    lava_7_out = RunLAVA_7(lava_data_ch, run_id)
-    lava_8_out = RunLAVA_8(lava_data_ch, run_id)
-    lava_9_out = RunLAVA_9(lava_data_ch, run_id)
-    lava_10_out = RunLAVA_10(lava_data_ch, run_id)
+    lava_1_out = RunLAVA_1(lava_ready, run_id)
+    lava_2_out = RunLAVA_2(lava_ready, run_id)
+    lava_3_out = RunLAVA_3(lava_ready, run_id)
+    lava_4_out = RunLAVA_4(lava_ready, run_id)
+    lava_5_out = RunLAVA_5(lava_ready, run_id)
+    lava_6_out = RunLAVA_6(lava_ready, run_id)
+    lava_7_out = RunLAVA_7(lava_ready, run_id)
+    lava_8_out = RunLAVA_8(lava_ready, run_id)
+    lava_9_out = RunLAVA_9(lava_ready, run_id)
+    lava_10_out = RunLAVA_10(lava_ready, run_id)
 
     // Step 8: Merge LAVA results from all partitions
     all_lava_outputs = lava_1_out
@@ -517,11 +512,13 @@ workflow {
     merged_lava = MergeLAVA(all_lava_outputs, run_id)
 
     // Step 9: Cleanup stratified LAVA results, keeping only merged files
-    merge_done = merged_lava.rds.collect().map { true }
-    CleanupLAVA(merge_done)
+    merged_rds_ready = merged_lava.rds_files.collect()
+    CleanupLAVA(merged_rds_ready)
 
     // Step 10: Run coloc on significant LAVA bivariate results (if enabled)
+    merged_tsv_ready = merged_lava.tsv_files.collect()
+
     if (params.coloc == true) {
-        Coloc(merge_done, run_id)
+        Coloc(merged_tsv_ready, run_id)
     }
 }
