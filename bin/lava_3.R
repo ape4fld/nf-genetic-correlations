@@ -28,7 +28,7 @@ end_locus <- 750
 # -----------------------------------------------------------
 # Get array of phenotypes:
 
-info <- read.table(here("data", lava_data_dir, paste0(file_prefix, "info_file.txt")), sep = "\t", header = TRUE)
+info <- read.table(here(lava_data_dir, paste0(file_prefix, "info_file.txt")), sep = "\t", header = TRUE)
 phenotypes <- info$phenotype
 
 # -----------------------------------------------------------
@@ -39,8 +39,8 @@ args <-
   list(
     ref_prefix = ref_ld,
     loc_file = loci_file,
-    info_file = here("data", lava_data_dir, paste0(file_prefix, "info_file.txt")),
-    sample_overlap_file = here("data", lava_data_dir, paste0(file_prefix, "sample_overlap.txt")),
+    info_file = here(lava_data_dir, paste0(file_prefix, "info_file.txt")),
+    sample_overlap_file = here(lava_data_dir, paste0(file_prefix, "sample_overlap.txt")),
     phenotypes = phenotypes,
     output_filename = str_c(file_prefix, "local_rg_", str_c(phenotypes, collapse = ":"), "_part3")
   )
