@@ -17,11 +17,6 @@ file_prefix <- ifelse(run_id == "" || is.na(run_id), "", paste0(run_id, "_"))
 
 metadata <- read.table(metadata_file, sep = "\t", header = TRUE)
 
-# Derive suffix from filename (same logic as in main pipeline)
-# suffixes <- metadata$filename %>%
-#     stringr::str_remove(".gz$") %>%
-#     stringr::str_remove(".[:alpha:]+$")
-
 suffixes <- metadata$dataset
 
 # Get all pairwise combinations of suffixes
@@ -31,12 +26,7 @@ pairwise_combos <- combn(suffixes, 2)
 df_out <- data.frame(
     suffix1 = pairwise_combos[1, ],
     suffix2 = pairwise_combos[2, ]
-) # %>%
-#     mutate(
-#         file1 = stringr::str_c(munged_dir, "/", suffix1, ".sumstats.gz"),
-#         file2 = stringr::str_c(munged_dir, "/", suffix2, ".sumstats.gz")
-#     ) %>%
-#     dplyr::select(file1, suffix1, file2, suffix2)
+)
 
 for (i in 1:nrow(df_out)) {
     sub1 <- metadata %>% dplyr::filter(., dataset == df_out$suffix1[i])
