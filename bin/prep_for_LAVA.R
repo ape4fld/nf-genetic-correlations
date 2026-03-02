@@ -27,10 +27,13 @@ file_prefix <- ifelse(run_id == "" || is.na(run_id), "", paste0(run_id, "_"))
 
 metadata <- read.table(metadata_file, sep = "\t", header = TRUE) 
 
-info <- metadata %>%
-  mutate(suffix = stringr::str_remove(filename, ".gz$") %>% stringr::str_remove(., ".[:alpha:]+$"),
-        formatted_path = stringr::str_c(formatted_dir, "/formatted_", suffix, ".tsv")) %>%
-  dplyr::select(phenotype = suffix, cases, controls, filename = formatted_path)
+metadata_link <- metadata %>%
+  mutate(filename_base = stringr::str_remove(filename, ".gz$") %>% stringr::str_remove(., ".[:alpha:]+$"))
+
+info <- metadata_link %>%
+  mutate(formatted_path = stringr::str_c(formatted_dir, "/formatted_", filename_base, ".tsv")) %>%
+  dplyr::select(phenotype = dataset, cases, controls, filename = formatted_path)
+
 write.table(info, paste0(file_prefix, "info_file.txt"), sep = "\t", row.names = F, quote = F)
 
 # -----------------------------------------------------------
@@ -82,9 +85,24 @@ all_rg <-
     h2_int_se,
     gcov_int,
     gcov_int_se
-  ) %>% distinct(., p1, p2, .keep_all = TRUE) %>%
-  dplyr::filter(p1 %in% info$phenotype) %>%
-  dplyr::filter(p2 %in% info$phenotype)
+  ) %>% distinct(., p1, p2, .keep_all = TRUE) 
+  
+# keep only traits in metadata file:
+all_rg <- all_rg %>%
+  dplyr::filter(p1 %in% metadata_link$filename_base) %>%
+  dplyr::filter(p2 %in% metadata_link$filename_base) %>%
+  dplyr::rename(p1_old = p1, p2_old = p2)
+
+# link p1 and p2 to replace by metadata$dataset column instead of the basename of filename
+for (i in 1:nrow(all_rg)) {
+  sub1 <- metadata_link %>% dplyr::filter(., filename_base == all_rg$p1_old[i])
+  all_rg$p1[i] <- sub1$dataset[1]
+  sub2 <- metadata_link %>% dplyr::filter(., filename_base == all_rg$p2_old[i])
+  all_rg$p2[i] <- sub2$dataset[1]
+}
+
+all_rg <- all_rg %>%
+  dplyr::select(p1,p2,rg,se,z,p,h2_obs,h2_obs_se,h2_int, h2_int_se, gcov_int, gcov_int_se)
 
 phenotypes <- info$phenotype
 
