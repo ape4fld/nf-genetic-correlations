@@ -428,7 +428,7 @@ process CleanupLAVA {
 }
 
 process Coloc {
-    label 'r_env'
+    label 'coloc'
 
     input:
     val ready
