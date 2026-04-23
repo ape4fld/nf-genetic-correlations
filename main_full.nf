@@ -416,17 +416,6 @@ process MergeLAVA {
     """
 }
 
-process CleanupLAVA {
-
-    input:
-    val ready
-
-    script:
-    """
-    rm -f ${params.output_dir}/LAVA/*_part*.rds
-    """
-}
-
 process Coloc {
     label 'coloc'
 
@@ -447,6 +436,17 @@ process Coloc {
         ${params.output_dir}/LAVA \
         ${run_id} \
         ${pvalue_LAVA_coloc}
+    """
+}
+
+process CleanupLAVA {
+
+    input:
+    val ready
+
+    script:
+    """
+    rm -f ${params.output_dir}/LAVA/*_part*.rds
     """
 }
 
@@ -511,14 +511,21 @@ workflow {
 
     merged_lava = MergeLAVA(all_lava_outputs, run_id)
 
-    // Step 9: Cleanup stratified LAVA results, keeping only merged files
-    merged_rds_ready = merged_lava.rds_files.collect()
-    CleanupLAVA(merged_rds_ready)
-
-    // Step 10: Run coloc on significant LAVA bivariate results (if enabled)
+    // Step 9: Run coloc on significant LAVA bivariate results (if enabled)
     merged_tsv_ready = merged_lava.tsv_files.collect()
 
     if (params.coloc == true) {
-        Coloc(merged_tsv_ready, run_id)
+        coloc_ready = Coloc(merged_tsv_ready, run_id)
+    }
+
+    // Step 10: Cleanup stratified LAVA results, keeping only merged files
+
+    if (params.coloc == false) {
+        merged_rds_ready = merged_lava.rds_files.collect()
+        CleanupLAVA(merged_rds_ready)
+    }
+
+    if (params.coloc == true) {
+        CleanupLAVA(coloc_ready)
     }
 }
