@@ -26,6 +26,9 @@ params.coloc = params.coloc ?: false
 params.pvalue_LAVA_coloc = params.pvalue_LAVA_coloc ?: 0.05
 pvalue_LAVA_coloc = params.pvalue_LAVA_coloc
 
+// Clean intermediate files: enabled by default, disable with --clean_files_only false
+params.clean_files_only = params.clean_files_only ?: true
+
 // Build channel from metadata file - only processes files listed in metadata
 Channel
     .from(metadata_file.readLines().drop(1))  // skip header before creating channel
@@ -439,7 +442,7 @@ process Coloc {
     """
 }
 
-process CleanupLAVA {
+process Cleanup {
 
     input:
     val ready
@@ -447,6 +450,10 @@ process CleanupLAVA {
     script:
     """
     rm -f ${params.output_dir}/LAVA/*_part*.rds
+    rm -f ${params.output_dir}/formatted/formatted_*.tsv
+    rm -f ${params.output_dir}/ldsc_rg/ldsc_rg_*.rg_results
+    rm -f ${params.output_dir}/ldsc_rg/*_pairs_to_test.tsv
+    rm -f ${params.output_dir}/munged/*.sumstats.gz
     """
 }
 
@@ -518,14 +525,17 @@ workflow {
         coloc_ready = Coloc(merged_tsv_ready, run_id)
     }
 
-    // Step 10: Cleanup stratified LAVA results, keeping only merged files
+    // Step 10: Cleanup intermediate files generated, keeping only final results in each results/ directory
 
-    if (params.coloc == false) {
-        merged_rds_ready = merged_lava.rds_files.collect()
-        CleanupLAVA(merged_rds_ready)
-    }
+    if (params.clean_files_only == true) {
 
-    if (params.coloc == true) {
-        CleanupLAVA(coloc_ready)
+        if (params.coloc == false) {
+            merged_rds_ready = merged_lava.rds_files.collect()
+            Cleanup(merged_rds_ready)
+        }
+
+        if (params.coloc == true) {
+            Cleanup(coloc_ready)
+        }
     }
 }
