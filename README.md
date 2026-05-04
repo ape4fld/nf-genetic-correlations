@@ -205,6 +205,7 @@ Once you've completed the setup and configuration, you can run the pipeline:
    | --lava-ref          | Specify LD reference for LAVA ('1KGP_EUR' or 'UKB') | 'UKB' |
    | --coloc             | Include colocalization analysis (true or false) | false |
    | --pvalue_LAVA_coloc | Provide p-value cutoff for a significant local genetic correlation (for use with --coloc) | 0.05 |
+   | --clean_files_only  | Delete intermediate files generated, keep only final results | true |
 
 3. **Submit the job**:
    ```bash
