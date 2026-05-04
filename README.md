@@ -238,20 +238,20 @@ The pipeline generates results in the following directory structure:
 ```
 results/
 ├── formatted/                 # Formatted summary statistics
-│   └── formatted_*.tsv        # One file per GWAS dataset
+│   └── formatted_*.tsv        # One file per GWAS dataset (kept only if --clean_files_only = false)
 ├── munged/                    # LDSC-ready files
-│   └── *.sumstats.gz          # Munged summary statistics
+│   └── *.sumstats.gz          # Munged summary statistics (kept only if --clean_files_only = false)
 ├── ldsc_h2/                   # Heritability estimates
 │   └── *.h2_results           # SNP-heritability for each trait
 ├── ldsc_rg/                   # Global genetic correlations
-│   ├── *.rg_results           # Pairwise genetic correlations
-│   └── all_rg_results.tsv     # Combined results table
+│   ├── *.rg_results           # Pairwise genetic correlations (kept only if --clean_files_only = false)
+│   └── *_all_rg_results.tsv     # Combined results table
 └── LAVA/                      # Local genetic correlations
 │   ├── *univ.lava.tsv         # Univariate test results (one line per trait)
 │   └── *bivar.lava.tsv        # Bivariate test results (one line per trait pair)
 └── coloc/                     # Colocalization results, if enabled by user
-    ├── *coloc_all.txt         # Coloc results (one line per variant assessed across traits and loci)
-    └── *coloc_summary.txt     # Coloc summary results (one line per locus)
+    ├── *_coloc_all.txt         # Coloc results (one line per variant assessed across traits and loci)
+    └── *_coloc_summary.txt     # Coloc summary results (one line per locus)
 
 data/LAVA/                     # LAVA input files
 ├── info_file.txt              # Trait information
