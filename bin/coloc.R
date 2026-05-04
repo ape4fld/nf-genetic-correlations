@@ -35,11 +35,11 @@ trait_pairs <- array()
 metadata <- fread(metadata_file)
 
 # read LAVA bivariate results
-lava_bivar_path <- list.files(lava_bivar_dir, pattern = "*.bivar.lava.tsv", full = TRUE)
+lava_bivar_path <- list.files(lava_bivar_dir, pattern = paste0("^", file_prefix, ".*\\.bivar.lava.tsv$"), full = TRUE)
 lava_bivar = list()
 
 if (length(lava_bivar_path) == 0) {
-    stop("No LAVA bivariate result files found in directory.")
+    stop("No LAVA bivariate result files found in directory. This is possibly true if there weren't any pairs of traits to test for local genetic correlations.")
 }
 
 for (i in seq_along(lava_bivar_path)) {
@@ -60,7 +60,7 @@ if (nrow(test_loci) == 0) {
 }
 
 for (i in 1:nrow(test_loci)) {
-    
+
     locus = test_loci$locus[i]
     chr = test_loci$chr[i]
     start_pos = test_loci$start[i]
@@ -99,35 +99,33 @@ for (i in 1:nrow(test_loci)) {
 
     # phen1
     phen1_sumstats <- fread(phen1_file) 
-    check_colnames <- cols_expected %in% colnames(phen1_sumstats)
+    check_colnames_phen1 <- cols_expected %in% colnames(phen1_sumstats)
     
-    if ("FALSE" %in% check_colnames == TRUE) {
-        stop(stringr::str_c("The summary statistics for ", phen1," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\n
-            chromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
-    } else {
-        phen1_sumstats <- phen1_sumstats %>%
-            dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
-            mutate(., N = metadata_phen1$N[1],
-                    varbeta = standard_error^2) %>%
-            dplyr::filter(., !is.na(variant_id)) %>%
-            distinct(., variant_id, .keep_all = TRUE)
+    if ("FALSE" %in% check_colnames_phen1 == TRUE) {
+        stop(stringr::str_c("The summary statistics for ", phen1," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
     }
+
+    phen1_sumstats <- phen1_sumstats %>%
+        dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
+        mutate(., N = metadata_phen1$N[1],
+                varbeta = standard_error^2) %>%
+        dplyr::filter(., !is.na(variant_id)) %>%
+        distinct(., variant_id, .keep_all = TRUE)
 
     # phen2
     phen2_sumstats <- fread(phen2_file)
-    check_colnames <- cols_expected %in% colnames(phen2_sumstats)
+    check_colnames_phen2 <- cols_expected %in% colnames(phen2_sumstats)
     
-    if ("FALSE" %in% check_colnames == TRUE) {
-        stop(stringr::str_c("The summary statistics for ", phen2," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\n
-            chromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
-    } else {
-        phen2_sumstats <- phen2_sumstats %>%
-            dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
-            mutate(., N = metadata_phen2$N[1],
-                    varbeta = standard_error^2) %>%
-            dplyr::filter(., !is.na(variant_id)) %>%
-            distinct(., variant_id, .keep_all = TRUE)
+    if ("FALSE" %in% check_colnames_phen2 == TRUE) {
+        stop(stringr::str_c("The summary statistics for ", phen2," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
     }
+
+    phen2_sumstats <- phen2_sumstats %>%
+        dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
+        mutate(., N = metadata_phen2$N[1],
+                varbeta = standard_error^2) %>%
+        dplyr::filter(., !is.na(variant_id)) %>%
+        distinct(., variant_id, .keep_all = TRUE)
 
     # Run coloc depending on which trait is quantitative or case/control
     # Assumes variance (dY) for quantitative traits = 1
@@ -150,7 +148,9 @@ for (i in 1:nrow(test_loci)) {
                                                 sdY = 1),
                                 p1 = p1, p2 = p2, p12 = p12
         )
-    } else if (is.na(metadata_phen1$cases[1]) == TRUE & is.na(metadata_phen2$cases[1]) == FALSE) {
+    } 
+    
+    if (is.na(metadata_phen1$cases[1]) == TRUE & is.na(metadata_phen2$cases[1]) == FALSE) {
         # 2) Phen1 is quantitative and phen2 is case control:
         s_phen2 = metadata_phen2$cases[1] / (metadata_phen2$cases[1] + metadata_phen2$controls[1])
 
@@ -170,7 +170,9 @@ for (i in 1:nrow(test_loci)) {
                                                 s = s_phen2),
                                 p1 = p1, p2 = p2, p12 = p12
         )
-    } else if (is.na(metadata_phen1$cases[1]) == FALSE & is.na(metadata_phen2$cases[1]) == TRUE) {
+    }
+    
+    if (is.na(metadata_phen1$cases[1]) == FALSE & is.na(metadata_phen2$cases[1]) == TRUE) {
         # 3) Phen1 is case control and phen2 is quantitative:
         s_phen1 = metadata_phen1$cases[1] / (metadata_phen1$cases[1] + metadata_phen1$controls[1])
 
@@ -190,7 +192,9 @@ for (i in 1:nrow(test_loci)) {
                                                 sdY = 1),
                                 p1 = p1, p2 = p2, p12 = p12
         )
-    } else if (is.na(metadata_phen1$cases[1]) == FALSE & is.na(metadata_phen2$cases[1]) == FALSE) {
+    }
+    
+    if (is.na(metadata_phen1$cases[1]) == FALSE & is.na(metadata_phen2$cases[1]) == FALSE) {
         # 4) Phen1 and Phen2 are both case control:
         s_phen1 = metadata_phen1$cases[1] / (metadata_phen1$cases[1] + metadata_phen1$controls[1])
         s_phen2 = metadata_phen2$cases[1] / (metadata_phen2$cases[1] + metadata_phen2$controls[1])
