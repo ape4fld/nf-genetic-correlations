@@ -11,8 +11,6 @@ module load java/21.0.1
 module load nextflow/24.10.2
 module load apptainer/1.3.5
 
-export R_LIBS=~/.local/R/4.3.1/
-
 export NXF_DISABLE_REMOTE_WORKFLOW=true
 export NXF_DISABLE_CHECK_LATEST=true
 
