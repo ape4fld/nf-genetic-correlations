@@ -46,7 +46,7 @@ To our knowledge, this is the first approach that streamlines global and local g
 
 # Software design
 
-*nf-genetic-correlations* was developed using Nextflow, given that is one of the most widely used workflow management tools in bioinformatics, and it allows the use of several programming languages interchangeably, such as Python and R. Each process in the workflow will be automatically run after the previous one, without the user needing to intervene in between steps. A summary of the workflow is presented in ![Figure 1](https://github.com/ape4fld/nf-genetic-correlations/blob/main/workflow.png), and it consists on the following architecture:
+*nf-genetic-correlations* was developed using Nextflow, given that is one of the most widely used workflow management tools in bioinformatics, and it allows the use of several programming languages interchangeably, such as Python and R. Each process in the workflow will be automatically run after the previous one, without the user needing to intervene in between steps. A summary of the workflow is presented in ![Figure 1](https://github.com/ape4fld/nf-genetic-correlations/paper/workflow.png), and it consists on the following architecture:
 1)	Formatting the GWAS summary statistics based on the metadata file that the user inputs, to be used for LDSC, LAVA and optionally colocalization.
 2)	Munging the GWAS summary statistics for LDSC specifically by using the LDSC custom Python 2 script.
 3)	Estimation of the genetic heritability of each of the traits used as input with LDSC, followed by estimating the global genetic correlation with LDSC across all possible pairs of traits.
