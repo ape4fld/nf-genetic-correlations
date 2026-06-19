@@ -55,7 +55,7 @@ To our knowledge, this is the first approach that streamlines global and local g
 6)	If the user opted to perform genetic colocalizations, the process begins for those pairs of traits which were significant in the LAVA bivariate test. By default, the significance threshold is defined by having a *p*-value < 0.05, but the user can adjust the threshold.
 7)	Finally, clean-up of intermediate files is done, to keep only final results in each of the main steps of the pipeline: LDSC heritability and global genetic correlations, LAVA univariate and bivariate tests, and, optionally, genetic colocalization results. The user can opt to keep intermediate files.
 
-![Figure 1. Workflow of nf-genetic-correlations processes](workflow.png)
+![Figure 1. Workflow of nf-genetic-correlations processes](workflow.png){height="10pt"}
 
 The pipeline is designed so that users do not need to edit or adapt the Nextflow file (main_full.nf) where the workflow and all processes are described. Instead, the user can change certain settings by using optional flags in the executed Nextflow command. Therefore, users do not need to be proficient in Nextflow to use *nf-genetic-correlations*. The Nextflow configuration file (nextflow.config) includes minimal parameters that need to be adapted depending on the environment and system the user is using, which are all clearly explained in the Github repository. Finally, the Github repository also includes an example of how to execute the pipeline using a SLURM workload manager (run_nextflow.sh).
 
