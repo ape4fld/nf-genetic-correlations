@@ -450,10 +450,10 @@ process Cleanup {
     script:
     """
     rm -f ${params.output_dir}/LAVA/*_part*.rds
-    rm -f ${params.output_dir}/formatted/formatted_*.tsv
+    rm -r ${params.output_dir}/formatted
     rm -f ${params.output_dir}/ldsc_rg/ldsc_rg_*.rg_results
     rm -f ${params.output_dir}/ldsc_rg/*_pairs_to_test.tsv
-    rm -f ${params.output_dir}/munged/*.sumstats.gz
+    rm -r ${params.output_dir}/munged
     """
 }
 
