@@ -28,7 +28,7 @@ affiliations:
  - name: Department of Neurosciences, Faculty of Medicine, Université de Montréal, Quebec, Canada
    index: 4
 date: 19 June 2026
-bibliography: paper/paper.bib
+bibliography: paper.bib
 
 ---
 
