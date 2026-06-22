@@ -14,7 +14,7 @@ authors:
     corresponding: true
   - given-names: Fatima
     surname: Barry
-    affilitation: "1, 2"
+    affiliation: "1, 2"
   - given-names: Sarah A.
     surname: Gagliano Taliun
     affiliation: "1, 3, 4"
