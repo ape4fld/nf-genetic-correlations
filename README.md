@@ -54,9 +54,9 @@ mv ldsc_latest.sif bin/
 
 ---
 
-Download the R container image from Zenodo:
+Download the R container image from Zenodo (v2):
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18683118.svg)](https://doi.org/10.5281/zenodo.18683118)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20817347.svg)](https://doi.org/10.5281/zenodo.20817347)
 
 ```bash
 # Download the image (420Mb)
@@ -90,8 +90,7 @@ mv r_packages.sif bin/
 
 > ⚠️ `variant_id` must be rsIDs. This pipeline is optimized for harmonized summary stats from the [GWAS Catalog](https://www.ebi.ac.uk/gwas/).
 
-
-> ⚠️  If you plan to run colocalization analysis too, then you'll need two other columns in the GWAS summary statistics: **`chromosome`** and **`base_pair_location`**. Please make sure that **all summary statistics are in genome build GRCh37 (for compatibility with LAVA loci)**.
+> ⚠️ NEW: If you plan to run colocalization analysis too, then you can include two other columns in the GWAS summary statistics: **`chromosome`** and **`base_pair_location`**. Make sure that in the metadata file (described below) you select the correct genome version for each summary statistics (either `GRCh37`, `GRCh38`). The pipeline will automatically lift down to GRCh37 for LAVA compatibility. If you don't have these two columns, the pipeline will map rsIDs to GRCh37 genomic positions (and genome_version in the metadata file should be set to `none`).
 
 - Create a directory for the summary statistics:
 ```bash
@@ -111,6 +110,7 @@ Create a single file named `metadata.txt`, tab-separated, with the following col
 | `N`        | Total sample size (use max if per-variant varies)  |
 | `cases`    | Number of cases (use `NA` for continuous traits)   |
 | `controls` | Number of controls (use `NA` for continuous traits)|
+| `genome_version` | One of the following: `GRCh37`, `GRCh38` or `none` (if there are no CHR and BP locations) |
 
 - Store the metadata file in:
  ```bash
@@ -226,7 +226,7 @@ The nf-genetic-correlations pipeline will:
 - Process your GWAS summary statistics
 - Calculate global genetic correlations using LDSC
 - Calculate local genetic correlations using LAVA (the bivariate test is only performed for loci that passed a Bonferroni-corrected univariate test (i.e., pvalue < 0.05/2,945))
-- Optionally perform colocalization analysis using coloc R package (performed for pairs of traits with significant local genetic correlations (significance defined by the user)
+- Optionally perform colocalization analysis using coloc R package (performed for pairs of traits with significant local genetic correlations; significance defined by the user)
 - Output results to the `results/` directory
   
 ---

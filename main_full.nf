@@ -36,9 +36,10 @@ Channel
         def row = line.split('\t')
         def filename = row[1]
         def sampleN = row[2] as Integer
+        def genomeVersion = row[5]
         def filepath = file("${params.data_dir}/sumstats/${filename}")
         def suffixName = filepath.getBaseName(filename.endsWith('.gz') ? 2 : 1)
-        tuple(filepath, sampleN, suffixName)
+        tuple(filepath, sampleN, suffixName, genomeVersion)
     }
     .set { raw_sumstats_with_N }
 
@@ -51,7 +52,7 @@ process FormatSumstats {
     label 'r_env'
 
     input:
-    tuple path(file), val(sampleN), val(suffixName)
+    tuple path(file), val(sampleN), val(suffixName), val(genomeVersion)
 
     output:
     tuple path("formatted_${suffixName}.tsv"), val(sampleN), val(suffixName)
@@ -63,6 +64,7 @@ process FormatSumstats {
     Rscript ${params.bin_dir}/format_sumstats.R \
         ${file} \
         ${sampleN} \
+        ${genomeVersion} \
         formatted_${suffixName}.tsv
     """
 }
