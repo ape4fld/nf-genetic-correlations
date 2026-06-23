@@ -77,6 +77,8 @@ mv r_packages.sif bin/
 | Column          | Aliases accepted (agnostic to lower/upper case) |
 |-----------------|----------------------------------------------------|
 | `variant_id`    | `snp`, `rsid`, `rs_id`, `snpid`, `markername`, `marker`, `id`, `name`, `variantid` |
+| `chromosome`    | `chr`, `chrom`, `seqnames` |
+| `base_pair_location` | `pos`, `position`, `base_pair_location`, `basepairlocation`, `base_pair`, `genpos`, `base_pair_position` |
 | `effect_allele` | `effectallele`, `a1`, `ea`, `alt`, `allele1`, `tested_allele`, `coded_allele`      |
 | `other_allele`  | `otherallele`, `a2`, `oa`, `ref`, `allele2`, `non_effect_allele`, `nea`  |
 | `beta`          | `b`, `effect`, `effect_size`, `log_odds`, `log_or`   |
