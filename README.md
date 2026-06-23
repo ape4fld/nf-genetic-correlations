@@ -72,25 +72,21 @@ mv r_packages.sif bin/
 #### 📁 a) GWAS Summary Statistics
 
 - Accepted formats: `.tsv`, `.csv`, `.txt`, etc.
-- Required columns (**column names must match exactly**, order can vary and other columns will be ignored):
+- Required columns - only one of the following - (order of columns can vary and additional columns will be ignored):
+
+| Column          | Aliases accepted (agnostic to lower/upper case) |
+|-----------------|----------------------------------------------------|
+| `variant_id`    | `snp`, `rsid`, `rs_id`, `snpid`, `markername`, `marker`, `id`, `name`, `variantid` |
+| `effect_allele` | `effectallele`, `a1`, `ea`, `alt`, `allele1`, `tested_allele`, `coded_allele`      |
+| `other_allele`  | `otherallele`, `a2`, `oa`, `ref`, `allele2`, `non_effect_allele`, `nea`  |
+| `beta`          | `b`, `effect`, `effect_size`, `log_odds`, `log_or`   |
+| `standard_error`| `se`, `stderr`, `std_err`, `std_error` |
+| `p_value`       | `p`, `pval`, `pvalue`, `p_val`, `p.value`, `p-value` |
   
-     **`variant_id`**
- 
-     **`effect_allele`**
- 
-     **`other_allele`**
- 
-     **`beta`**
- 
-     **`standard_error`**
- 
-     **`p_value`**
- 
-     **`N`**
-
-> ⚠️ `variant_id` must be rsIDs. This pipeline is optimized for harmonized summary stats from the [GWAS Catalog](https://www.ebi.ac.uk/gwas/).
-
-> ⚠️ NEW: If you plan to run colocalization analysis too, then you can include two other columns in the GWAS summary statistics: **`chromosome`** and **`base_pair_location`**. Make sure that in the metadata file (described below) you select the correct genome version for each summary statistics (either `GRCh37`, `GRCh38`). The pipeline will automatically lift down to GRCh37 for LAVA compatibility. If you don't have these two columns, the pipeline will map rsIDs to GRCh37 genomic positions (and genome_version in the metadata file should be set to `none`).
+⚠️ Notes: 
+- **`variant_id`** must be rsIDs 
+- If `variant_id` is absent, **`chromosome`** and **`base_pair_location`** must be included (and specify the genome reference version in the `metadata.txt` file). Make sure you select the correct genome version for each summary statistics (either `GRCh37`, `GRCh38`).
+- Similarly, if `chromosome` and `base_pair_location` are absent, then `variant_id` must be present. The pipeline will map rsIDs to GRCh37 genomic positions (and `genome_version` in the metadata file should be then set to `none`).
 
 - Create a directory for the summary statistics:
 ```bash
