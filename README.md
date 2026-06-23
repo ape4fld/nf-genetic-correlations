@@ -72,7 +72,7 @@ mv r_packages.sif bin/
 #### 📁 a) GWAS Summary Statistics
 
 - Accepted formats: `.tsv`, `.csv`, `.txt`, etc.
-- Required columns - only one of the following - (order of columns can vary and additional columns will be ignored):
+- Required columns - only one of each - (order of columns can vary and additional columns will be ignored):
 
 | Column          | Aliases accepted (agnostic to lower/upper case) |
 |-----------------|----------------------------------------------------|
@@ -90,7 +90,7 @@ mv r_packages.sif bin/
 - If `variant_id` is absent, **`chromosome`** and **`base_pair_location`** must be included (and specify the genome reference version in the `metadata.txt` file). Make sure you select the correct genome version for each summary statistics (either `GRCh37`, `GRCh38`).
 - Similarly, if `chromosome` and `base_pair_location` are absent, then `variant_id` must be present. The pipeline will map rsIDs to GRCh37 genomic positions (and `genome_version` in the metadata file should be then set to `none`).
 
-- Create a directory for the summary statistics:
+- **Create a directory for the summary statistics:**
 ```bash
 mkdir data/sumstats/
 # Store the files here:
