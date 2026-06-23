@@ -7,6 +7,13 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(data.table)
+library(BSgenome)
+
+library(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+dbSNP144_GRCh37 <- SNPlocs.Hsapiens.dbSNP144.GRCh37
+
+library(SNPlocs.Hsapiens.dbSNP144.GRCh38)
+dbSNP144_GRCh38 <- SNPlocs.Hsapiens.dbSNP144.GRCh38
 
 # Set arguments -----------------------------------------------------------
 
@@ -28,6 +35,76 @@ p12 = 5e-06
 coloc_results_summ = list()
 coloc_results_res = list()
 trait_pairs <- array()
+
+##### Helper functions:
+
+# 1) rename columns to default
+rename_to_default <- function(df, aliases) {
+    lower_cols <- tolower(colnames(df))
+    for (canonical in names(aliases)) {
+        if (canonical %in% colnames(df)) next
+        match_idx <- which(lower_cols %in% tolower(aliases[[canonical]]))[1]
+        if (!is.na(match_idx)) {
+        message(sprintf("Column '%s' matched as '%s'", colnames(df)[match_idx], canonical))
+        colnames(df)[match_idx] <- canonical
+        lower_cols[match_idx] <- canonical
+        }
+    }
+    df
+}
+
+# 2) Function to convert rsIDs to chr:bp GRCh37 (Source: https://github.com/RHReynolds/colochelpR/blob/master/R/convert_rs_to_loc.R)
+
+convert_rs_to_loc <- function(df, SNP_column, dbSNP){
+  rs <- BSgenome::snpsById(dbSNP, df[[SNP_column]], ifnotfound = "drop") %>%
+    as.data.frame() %>%
+    tidyr::unite(col = "loc", seqnames, pos, sep = ":", remove = T) %>%
+    dplyr::rename(rs = RefSNP_id) %>%
+    dplyr::select(rs, loc)
+  filter_vector <- c("rs")
+  names(filter_vector) <- SNP_column
+  df <- df %>%
+    dplyr::inner_join(rs, by = filter_vector)
+  return(df)
+}
+
+# 3) Function to get rsIDs from chr:bp GRCh37 (Source: https://github.com/RHReynolds/colochelpR/blob/master/R/convert_rs_to_loc.R)
+
+convert_loc_to_rs <- function(df, dbsnp){
+  if(stringr::str_detect(df$CHR[1], "chr")){
+    df <-
+      df %>%
+      dplyr::mutate(CHR = stringr::str_replace(CHR, "chr", ""))
+  }
+  df <-
+    df %>%
+    dplyr::mutate(CHR = as.factor(CHR),
+                  BP = as.integer(BP))
+  df_gr <-
+    GenomicRanges::makeGRangesFromDataFrame(df,
+                                            keep.extra.columns = FALSE,
+                                            ignore.strand = TRUE,
+                                            seqinfo = NULL,
+                                            seqnames.field = "CHR",
+                                            start.field = "BP",
+                                            end.field = "BP",
+                                            starts.in.df.are.0based = FALSE)
+  df_gr <-
+    BSgenome::snpsByOverlaps(dbsnp, df_gr, minoverlap = 1L) %>%
+    as.data.frame()
+  combined <-
+    df_gr %>%
+    dplyr::rename(
+      variant_id = RefSNP_id,
+      CHR = seqnames,
+      BP = pos,
+      gr_strand = strand) %>%
+    dplyr::right_join(df, by = c("CHR", "BP")) %>%
+    dplyr::select(-gr_strand, -alleles_as_ambig) %>%
+    dplyr::filter(., !(is.na(variant_id))) %>%
+    dplyr::distinct(., variant_id, .keep_all = TRUE)
+  return(combined)
+}
 
 # Read datasets -------------------------------------------------------
 
@@ -94,38 +171,196 @@ for (i in 1:nrow(test_loci)) {
           next                                                                                                
       }
 
-    # check columns in summary statistics:
-    cols_expected = c("chromosome", "base_pair_location", "variant_id", "effect_allele", "other_allele", "beta", "standard_error", "p_value")
+    # Normalize column names to default form (case-insensitive alias matching) -----------
+    col_aliases <- list(
+        variant_id      = c("variant_id", "snp", "rsid", "rs_id", "snpid", "markername",
+                            "marker", "id", "name", "variantid"),
+        effect_allele   = c("effect_allele", "effectallele", "a1", "ea", "alt",
+                            "allele1", "tested_allele", "coded_allele"),
+        other_allele    = c("other_allele", "otherallele", "a2", "oa", "ref",
+                            "allele2", "non_effect_allele", "nea"),
+        beta            = c("beta", "b", "effect", "effect_size", "log_odds", "log_or"),
+        standard_error  = c("standard_error", "se", "stderr", "std_err", "std_error"),
+        p_value         = c("p_value", "p", "pval", "pvalue", "p_val", "p.value", "p-value")
+    )
+
+    df <- rename_to_default(df, col_aliases)
 
     # phen1
-    phen1_sumstats <- fread(phen1_file) 
-    check_colnames_phen1 <- cols_expected %in% colnames(phen1_sumstats)
+    phen1_sumstats <- fread(phen1_file)
+
+    if (!(metadata_phen1$genome_version[1] %in% c("GRCh37", "GRCh38", "none"))) {
+        warning(paste("Skipping: genome version for", phen1, "should be either: 'GRCh37', 'GRCh38' or 'none'."))
+        next
+    }
     
-    if ("FALSE" %in% check_colnames_phen1 == TRUE) {
-        stop(stringr::str_c("The summary statistics for ", phen1," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+    # Three scenarios for genome version: none, GRCh37, or GRCh38
+
+    # 1) none - means it doesn't have CHR and BP, so should map the rsIDs to GRCh37 positions.
+    # 2) GRCh37 - does it have variant_id? If yes, keep as is, if not then get rsIDs from CHR and BP.
+    # 3) GRCh38 - lift down positions to GRCh37, and assess if it has variant_id? If yes, keep as is, if not then get rsIDs from CHR and BP.
+
+    chr_bp_aliases <- list(
+        chromosome = c("chromosome", "chr", "chrom", "seqnames"),
+        base_pair_location = c("base_pair_location", "bp", "pos", "position",
+                               "basepairlocation", "base_pair", "genpos")
+    )
+    cols_check <- c("chromosome", "base_pair_location", "effect_allele",
+                    "other_allele", "beta", "standard_error", "p_value")
+
+    phen1_sumstats <- rename_to_default(phen1_sumstats, col_aliases)
+
+    if (metadata_phen1$genome_version[1] == "none") {
+        # No CHR/BP: map rsIDs to GRCh37 positions
+        phen1_sumstats <- phen1_sumstats %>%
+            convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
+            tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+            dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
+            dplyr::filter(., chromosome == chr &
+                             base_pair_location >= start_pos &
+                             base_pair_location <= end_pos) %>%
+            dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
+            dplyr::filter(., !is.na(variant_id)) %>%
+            dplyr::distinct(., variant_id, .keep_all = TRUE)
     }
 
-    phen1_sumstats <- phen1_sumstats %>%
-        dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
-        mutate(., N = metadata_phen1$N[1],
-                varbeta = standard_error^2) %>%
-        dplyr::filter(., !is.na(variant_id)) %>%
-        distinct(., variant_id, .keep_all = TRUE)
+    if (metadata_phen1$genome_version[1] == "GRCh37") {
+        phen1_sumstats <- rename_to_default(phen1_sumstats, chr_bp_aliases)
+        if (any(!(cols_check %in% colnames(phen1_sumstats)))) {
+            stop(stringr::str_c("The summary statistics for ", phen1, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+        }
+        if ("variant_id" %in% colnames(phen1_sumstats)) {
+            phen1_sumstats <- phen1_sumstats %>%
+                dplyr::filter(., chromosome == chr &
+                                 base_pair_location >= start_pos &
+                                 base_pair_location <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
+                dplyr::filter(., !is.na(variant_id)) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        } else {
+            phen1_sumstats <- phen1_sumstats %>%
+                dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
+                convert_loc_to_rs(., dbSNP144_GRCh37) %>%
+                dplyr::filter(., as.integer(as.character(CHR)) == chr &
+                                 BP >= start_pos & BP <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        }
+    }
+
+    if (metadata_phen1$genome_version[1] == "GRCh38") {
+        if ("variant_id" %in% colnames(phen1_sumstats)) {
+            # Use rsIDs to get GRCh37 positions directly
+            phen1_sumstats <- phen1_sumstats %>%
+                convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
+                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
+                dplyr::filter(., chromosome == chr &
+                                 base_pair_location >= start_pos &
+                                 base_pair_location <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
+                dplyr::filter(., !is.na(variant_id)) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        } else {
+            # Get rsIDs from GRCh38 CHR/BP, then get GRCh37 positions
+            phen1_sumstats <- rename_to_default(phen1_sumstats, chr_bp_aliases)
+            if (any(!(cols_check %in% colnames(phen1_sumstats)))) {
+                stop(stringr::str_c("The summary statistics for ", phen1, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+            }
+            phen1_sumstats <- phen1_sumstats %>%
+                dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
+                convert_loc_to_rs(., dbSNP144_GRCh38) %>%
+                convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
+                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
+                dplyr::filter(., chromosome == chr &
+                                 base_pair_location >= start_pos &
+                                 base_pair_location <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        }
+    }
 
     # phen2
     phen2_sumstats <- fread(phen2_file)
-    check_colnames_phen2 <- cols_expected %in% colnames(phen2_sumstats)
-    
-    if ("FALSE" %in% check_colnames_phen2 == TRUE) {
-        stop(stringr::str_c("The summary statistics for ", phen2," do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, variant_id, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+
+    if (!(metadata_phen2$genome_version[1] %in% c("GRCh37", "GRCh38", "none"))) {
+        warning(paste("Skipping: genome version for", phen2, "should be either: 'GRCh37', 'GRCh38' or 'none'."))
+        next
     }
 
-    phen2_sumstats <- phen2_sumstats %>%
-        dplyr::filter(., chromosome == chr & base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
-        mutate(., N = metadata_phen2$N[1],
-                varbeta = standard_error^2) %>%
-        dplyr::filter(., !is.na(variant_id)) %>%
-        distinct(., variant_id, .keep_all = TRUE)
+    phen2_sumstats <- rename_to_default(phen2_sumstats, col_aliases)
+
+    if (metadata_phen2$genome_version[1] == "none") {
+        # No CHR/BP: map rsIDs to GRCh37 positions
+        phen2_sumstats <- phen2_sumstats %>%
+            convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
+            tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+            dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
+            dplyr::filter(., chromosome == chr &
+                             base_pair_location >= start_pos &
+                             base_pair_location <= end_pos) %>%
+            dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
+            dplyr::filter(., !is.na(variant_id)) %>%
+            dplyr::distinct(., variant_id, .keep_all = TRUE)
+    }
+
+    if (metadata_phen2$genome_version[1] == "GRCh37") {
+        phen2_sumstats <- rename_to_default(phen2_sumstats, chr_bp_aliases)
+        if (any(!(cols_check %in% colnames(phen2_sumstats)))) {
+            stop(stringr::str_c("The summary statistics for ", phen2, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+        }
+        if ("variant_id" %in% colnames(phen2_sumstats)) {
+            phen2_sumstats <- phen2_sumstats %>%
+                dplyr::filter(., chromosome == chr &
+                                 base_pair_location >= start_pos &
+                                 base_pair_location <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
+                dplyr::filter(., !is.na(variant_id)) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        } else {
+            phen2_sumstats <- phen2_sumstats %>%
+                dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
+                convert_loc_to_rs(., dbSNP144_GRCh37) %>%
+                dplyr::filter(., as.integer(as.character(CHR)) == chr &
+                                 BP >= start_pos & BP <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        }
+    }
+
+    if (metadata_phen2$genome_version[1] == "GRCh38") {
+        if ("variant_id" %in% colnames(phen2_sumstats)) {
+            # Use rsIDs to get GRCh37 positions directly
+            phen2_sumstats <- phen2_sumstats %>%
+                convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
+                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
+                dplyr::filter(., chromosome == chr &
+                                 base_pair_location >= start_pos &
+                                 base_pair_location <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
+                dplyr::filter(., !is.na(variant_id)) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        } else {
+            # Get rsIDs from GRCh38 CHR/BP, then get GRCh37 positions
+            phen2_sumstats <- rename_to_default(phen2_sumstats, chr_bp_aliases)
+            if (any(!(cols_check %in% colnames(phen2_sumstats)))) {
+                stop(stringr::str_c("The summary statistics for ", phen2, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+            }
+            phen2_sumstats <- phen2_sumstats %>%
+                dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
+                convert_loc_to_rs(., dbSNP144_GRCh38) %>%
+                convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
+                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
+                dplyr::filter(., chromosome == chr &
+                                 base_pair_location >= start_pos &
+                                 base_pair_location <= end_pos) %>%
+                dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
+                dplyr::distinct(., variant_id, .keep_all = TRUE)
+        }
+    }
 
     # Run coloc depending on which trait is quantitative or case/control
     # Assumes variance (dY) for quantitative traits = 1
