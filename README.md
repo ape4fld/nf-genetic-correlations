@@ -16,11 +16,12 @@ This pipeline processes **harmonized GWAS summary statistics** (restricted to **
 - **Bayesian colocalization** (optional; if enabled by user) using [coloc](https://chr1swallace.github.io/coloc/) (optional; across loci with significant regional genetic correlations)
 
 There are several advantages of using the pipeline:
-1) Given that it uses an LDSC .sif image, there is no need to load old python versions (< v3) to run LDSC.
+1) There is no need to install specific Python/R versions or libraries, as we use containers (.sif images).
 2) The pipeline formats and adapts the GWAS summary statistics for each tool.
-3) The user does not need to prepare additional files, other than a metadata file.
-4) It partitions LAVA loci so that they all run in parallel, which significantly reduces the running time.
-5) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
+3) Chromosome X is also considered for LAVA and colocalization.
+4) The user does not need to prepare additional files, other than a metadata file.
+5) It partitions LAVA loci so that they all run in parallel, which significantly reduces the running time (~ 10X).
+6) It is reproducible and the user can easily re-run the analysis by adding/removing GWAS datasets from the metadata file.
 
 ---
 
