@@ -429,7 +429,7 @@ process Coloc {
     val run_id
 
     output:
-    path("*.txt"), emit: data_files, optional: true
+    path("*.tsv"), emit: data_files, optional: true
 
     publishDir "${params.output_dir}/coloc", mode: 'copy', pattern: "*.txt"
 
@@ -456,6 +456,7 @@ process Cleanup {
     rm -f ${params.output_dir}/ldsc_rg/ldsc_rg_*.rg_results
     rm -f ${params.output_dir}/ldsc_rg/*_pairs_to_test.tsv
     rm -r ${params.output_dir}/munged
+    rm -r ${params.data_dir}/LAVA
     """
 }
 
