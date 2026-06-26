@@ -56,13 +56,13 @@ mv ldsc_latest.sif bin/
 
 Download the R container image from Zenodo (v2):
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20817347.svg)](https://doi.org/10.5281/zenodo.20817347)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20846749.svg)](https://doi.org/10.5281/zenodo.20846749)
 
 ```bash
 # Download the image (420Mb)
-wget https://zenodo.org/records/18683118/files/r_packages.sif
+wget https://zenodo.org/records/20846749/files/r_packages_v3.sif
 # Place it in the bin/ directory
-mv r_packages.sif bin/
+mv r_packages_v3.sif bin/
 ```
 
 ### 3. Inputs Required
