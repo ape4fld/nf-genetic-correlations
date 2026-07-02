@@ -9,7 +9,7 @@ Supports **LDSC** for genome-wide correlations and **LAVA** for local (regional)
 
 Take a look at the [workflow diagram](https://github.com/ape4fld/nf-genetic-correlations/blob/main/workflow.png) for a visual overview.
 
-This pipeline processes **harmonized GWAS summary statistics** (restricted to **European ancestry** for now) and computes:
+This pipeline processes **GWAS summary statistics** (by default for **European genetic ancestry**, but flexible across other genetic ancestries) and computes:
 
 - **Global genetic correlations** using [LDSC](https://github.com/bulik/ldsc) (also computes SNP-based heritability)
 - **Local genetic correlations** using [LAVA](https://github.com/josefin-werme/LAVA) (computes univariate and bivariate tests)
@@ -122,9 +122,14 @@ Create a single file named `metadata.txt`, tab-separated, with the following col
 1. **LD Scores for LDSC**  
 Download the LD scores from Zenodo:
 
+**European genetic ancestry (EUR):**
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18749273.svg)](https://doi.org/10.5281/zenodo.18749273)
 
+**Other 1000 Genomes Project ancestries can be found in the following repository:**
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8096589.svg)](https://doi.org/10.5281/zenodo.8096589)
+
 ```bash
+# Example for EUR:
 # Download the compressed directory (65.9Mb)
 wget -O eur_w_ld_chr.tar.gz https://zenodo.org/records/18749273/files/eur_w_ld_chr.tar.gz
 # Uncompress the directory
@@ -136,18 +141,21 @@ Place /eur_w_ld_chr in ld_reference directory:
 mv eur_w_ld_chr/ ./data/ld_reference/
 ```
 
-2. **1000 Genomes Reference or UK Biobank reference (for LAVA)**
-Download European PLINK reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md) or download UK Biobank reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md). Note that LAVA developers [highly recommend to use the UK Biobank reference file](https://www.preprints.org/manuscript/202507.0966).
+2. **1000 Genomes Reference or UK Biobank reference for LAVA**
+Download PLINK reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md) or download UK Biobank reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md). Note that LAVA developers [highly recommend to use the UK Biobank reference file](https://www.preprints.org/manuscript/202507.0966), instead of the EUR 1000 Genomes reference.
 
 Place 1000 Genomes Reference contents in:
- ```bash
+```bash
+# Example for EUR 1000 Genomes:
 /nf-genetic-correlations/data/ld_reference/g1000_eur/
 ```
+or 
+
 Place UK Biobank reference contents in:
- ```bash
+```bash
 /nf-genetic-correlations/data/ld_reference/ukb_eur/
 ```
-Note: The default LD reference file that is used is the UK Biobank, but the user can specify the LD source with the --lava_ref flag (options: 1KGP_EUR or UKB) - see ```run_nextflow.sh```).
+Note: The default LD reference file that is used is the UK Biobank, but the user can specify the LD source with the --lava_ref flag (options: UKB, `1KGP_EUR`, `1KGP_AFR`, `1KGP_EAS`, `1KGP_SAS`, `1KGP_AMR`) - see ```run_nextflow.sh```).
 
 ### 4. ⚙️ Nextflow Configuration
 
@@ -168,15 +176,12 @@ process.clusterOptions = '--account=def-xxxxx'  // Replace with your allocation
 
 #### ⏱️ Time Considerations for LAVA:
 
-The LAVA process is currently set to 1 hour, which works well for 4-5 phenotypes. However, **running time increases** with more datasets due to pairwise comparisons:
-- 3 datasets = 3 pairs
-- 5 datasets = 10 pairs  
-- 10 datasets = 45 pairs
+The LAVA process is currently set to 4 hours, which works well for less than ten phenotypes. However, **running time increases** with more datasets due to pairwise comparisons.
 
 To adjust the time limit, modify in the [Nextflow config file](https://github.com/ape4fld/nf-genetic-correlations/blob/main/nextflow.config):
 ```nextflow
 withLabel: lava {
-    time = "1h"  // Increase for larger analyses
+    time = "4h"  // Increase for larger analyses
 }
 ```
 
@@ -201,7 +206,9 @@ Once you've completed the setup and configuration, you can run the pipeline:
    |---------------------|--------------------------------------------------|------------|
    | --run_id            | Give the specific run a prefix | no prefix |
    | --metadata          | Provide a different name to the metadata file | metadata.txt |
-   | --lava-ref          | Specify LD reference for LAVA ('1KGP_EUR' or 'UKB') | 'UKB' |
+   | --ldsc_ref          | Provide directory name of the LDSC reference panel | 'eur_w_ld_chr' |
+   | --lava_ref          | Specify LD reference for LAVA ('UKB', '1KGP_EUR', '1KGP_AFR', '1KGP_EAS', '1KGP_SAS', '1KGP_AMR') | 'UKB' |
+   | --lava_locus        | Provide a LAVA custom locus file name (should be stored in `data/ld_reference/`) | 'EUR' (EUR 1000 Genomes locus file with chromosome X included) |
    | --coloc             | Include colocalization analysis (true or false) | false |
    | --pvalue_LAVA_coloc | Provide p-value cutoff for a significant local genetic correlation (for use with --coloc) | 0.05 |
    | --clean_files_only  | Delete intermediate files generated, keep only final results | true |
@@ -236,10 +243,10 @@ The pipeline generates results in the following directory structure:
 
 ```
 results/
-├── formatted/                 # Formatted summary statistics
-│   └── formatted_*.tsv        # One file per GWAS dataset (kept only if --clean_files_only = false)
-├── munged/                    # LDSC-ready files
-│   └── *.sumstats.gz          # Munged summary statistics (kept only if --clean_files_only = false)
+├── formatted/                 # Formatted summary statistics (kept only if --clean_files_only = false)
+│   └── formatted_*.tsv        # One file per GWAS dataset
+├── munged/                    # LDSC-ready files (kept only if --clean_files_only = false)
+│   └── *.sumstats.gz          # Munged summary statistics
 ├── ldsc_h2/                   # Heritability estimates
 │   └── *.h2_results           # SNP-heritability for each trait
 ├── ldsc_rg/                   # Global genetic correlations
@@ -252,7 +259,7 @@ results/
     ├── *_coloc_all.txt         # Coloc results (one line per variant assessed across traits and loci)
     └── *_coloc_summary.txt     # Coloc summary results (one line per locus)
 
-data/LAVA/                     # LAVA input files
+data/LAVA/                     # LAVA input files (kept only if --clean_files_only = false)
 ├── info_file.txt              # Trait information
 └── sample_overlap.txt         # Sample overlap matrix
 ```
