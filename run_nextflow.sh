@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=def-xxxxx
+#SBATCH --account=def-gsarah
 #SBATCH --job-name=nextflow_run
 #SBATCH --output=slurm-%x.out
 #SBATCH --error=slurm-%x.err
@@ -20,6 +20,11 @@ WORK_DIR="${SLURM_SUBMIT_DIR}"
 # Run nextflow from the submission directory
 cd "${WORK_DIR}"
 nextflow run main_full.nf -profile rorqual -resume \
-    --run_id analysis1 \
+    --run_id analysis_example1 \
     --metadata ${WORK_DIR}/data/metadata.txt \
-    --lava_ref 'UKB'
+    --ldsc_ref 'eur_w_ld_chr' \
+    --lava_locus 'EUR' \
+    --lava_ref 'UKB' \
+    --coloc true \
+    --pvalue_LAVA_coloc 0.05 \
+    --clean_files_only false

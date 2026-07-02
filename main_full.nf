@@ -8,15 +8,36 @@ run_id = params.run_id
 // Metadata file - can be overridden per run
 metadata_file = params.metadata ? file(params.metadata) : file(params.data_dir).resolve('metadata.txt')
 
-// LAVA reference panel (options: --lava_ref UKB or 1KGP_EUR, default: UKB)
+// LDSC reference panel
+params.ldsc_ref = params.ldsc_ref ?: 'eur_w_ld_chr'
+w_ld_chr = "${params.data_dir}/ld_reference/${params.ldsc_ref}"
+
+// LAVA reference panel (options: --lava_ref UKB, 1KGP_EUR, 1KGP_AFR, 1KGP_EAS, 1KGP_SAS, 1KGP_AMR, default: UKB)
 params.lava_ref = params.lava_ref ?: 'UKB'
 
 if (params.lava_ref == 'UKB') {
     ref_ld_chr = "${params.data_dir}/ld_reference/ukb_eur/lava-ukb-v1.1"
 } else if (params.lava_ref == '1KGP_EUR') {
-    ref_ld_chr = "${params.data_dir}/ld_reference/g1000_eur/g1000_eur"
+    ref_ld_chr = "${params.data_dir}/ld_reference/g1000_eur"
+} else if (params.lava_ref == '1KGP_AFR') {
+    ref_ld_chr = "${params.data_dir}/ld_reference/g1000_afr"
+} else if (params.lava_ref == '1KGP_EAS') {
+    ref_ld_chr = "${params.data_dir}/ld_reference/g1000_eas"
+} else if (params.lava_ref == '1KGP_SAS') {
+    ref_ld_chr = "${params.data_dir}/ld_reference/g1000_sas"
+} else if (params.lava_ref == '1KGP_AMR') {
+    ref_ld_chr = "${params.data_dir}/ld_reference/g1000_amr"
 } else {
-    error "Invalid lava_ref value: ${params.lava_ref}. Must be 'UKB' or '1KGP_EUR'"
+    error "Invalid lava_ref value: ${params.lava_ref}. Must be one of: 'UKB', '1KGP_EUR', '1KGP_AFR', '1KGP_EAS', '1KGP_SAS', '1KGP_AMR'"
+}
+
+// LAVA locus file
+params.lava_locus = params.lava_locus ?: 'EUR'
+
+if (params.lava_locus == 'EUR') {
+    lava_locus_file = "${params.data_dir}/ld_reference/blocks_s2500_EUR_chr1-23full.GRCh37_hg19.locfile"
+} else {
+    lava_locus_file = "${params.data_dir}/ld_reference/${params.lava_locus}"
 }
 
 // Coloc: disabled by default, enable with --coloc true
@@ -106,8 +127,8 @@ process RunLDSC_h2 {
     """
         ldsc ldsc h2 \
             --h2 ${file} \
-            --ref-ld-chr ${params.w_ld_chr} \
-            --w-ld-chr ${params.w_ld_chr} \
+            --ref-ld-chr ${w_ld_chr} \
+            --w-ld-chr ${w_ld_chr} \
             --out ldsc_h2_${suffixName}
     """
 }
@@ -149,8 +170,8 @@ process RunLDSC_rg {
         ldsc ldsc rg \
             --rg ${file1} \
             --rg ${file2} \
-            --ref-ld-chr ${params.w_ld_chr} \
-            --w-ld-chr ${params.w_ld_chr} \
+            --ref-ld-chr ${w_ld_chr} \
+            --w-ld-chr ${w_ld_chr} \
             --out ldsc_rg_${suffix1}_${suffix2}
     """
 }
@@ -196,7 +217,7 @@ process RunLAVA_1 {
     """
         Rscript ${params.bin_dir}/lava_1.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -218,7 +239,7 @@ process RunLAVA_2 {
     """
         Rscript ${params.bin_dir}/lava_2.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -240,7 +261,7 @@ process RunLAVA_3 {
     """
         Rscript ${params.bin_dir}/lava_3.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -262,7 +283,7 @@ process RunLAVA_4 {
     """
         Rscript ${params.bin_dir}/lava_4.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -284,7 +305,7 @@ process RunLAVA_5 {
     """
         Rscript ${params.bin_dir}/lava_5.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -306,7 +327,7 @@ process RunLAVA_6 {
     """
         Rscript ${params.bin_dir}/lava_6.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -328,7 +349,7 @@ process RunLAVA_7 {
     """
         Rscript ${params.bin_dir}/lava_7.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -350,7 +371,7 @@ process RunLAVA_8 {
     """
         Rscript ${params.bin_dir}/lava_8.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -372,7 +393,7 @@ process RunLAVA_9 {
     """
         Rscript ${params.bin_dir}/lava_9.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -394,7 +415,7 @@ process RunLAVA_10 {
     """
         Rscript ${params.bin_dir}/lava_10.R \
             ${ref_ld_chr} \
-            ${params.locus_file} \
+            ${lava_locus_file} \
             ${params.data_dir}/LAVA \
             ${run_id}
     """
@@ -431,7 +452,7 @@ process Coloc {
     output:
     path("*.tsv"), emit: data_files, optional: true
 
-    publishDir "${params.output_dir}/coloc", mode: 'copy', pattern: "*.txt"
+    publishDir "${params.output_dir}/coloc", mode: 'copy', pattern: "*.tsv"
 
     script:
     """
