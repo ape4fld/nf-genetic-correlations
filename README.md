@@ -210,7 +210,7 @@ Once you've completed the setup and configuration, you can run the pipeline:
    |---------------------|--------------------------------------------------|------------|
    | --run_id            | Give the specific run a prefix | no prefix |
    | --metadata          | Provide a different name to the metadata file | metadata.txt |
-   | --ldsc_ref          | Provide directory name of the LDSC reference panel | 'eur_w_ld_chr' |
+   | --ldsc_ref          | Provide directory name where the LDSC LD scores are deposited | 'eur_w_ld_chr' |
    | --lava_ref          | Specify LD population reference for LAVA ('UKB', '1KGP_EUR', '1KGP_AFR', '1KGP_EAS', '1KGP_SAS', '1KGP_AMR') | 'UKB' |
    | --lava_locus        | Provide a LAVA custom locus file name (should be stored in `data/ld_reference/`) | 'EUR' (EUR 1000 Genomes locus file with chromosome X included) |
    | --coloc             | Include colocalization analysis (true or false) | false |
