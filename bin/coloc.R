@@ -64,7 +64,14 @@ convert_rs_to_loc <- function(df, SNP_column, dbSNP){
   filter_vector <- c("rs")
   names(filter_vector) <- SNP_column
   df <- df %>%
-    dplyr::inner_join(rs, by = filter_vector)
+    dplyr::inner_join(., rs, by = filter_vector) %>%
+    tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
+    dplyr::mutate(., base_pair_location = as.numeric(base_pair_location),
+                     chromosome = case_when(
+                        chromosome == "X" ~ as.integer(23),
+                        TRUE ~ as.integer(chromosome)
+                     ))
+
   return(df)
 }
 
@@ -79,7 +86,12 @@ convert_loc_to_rs <- function(df, dbsnp){
   df <-
     df %>%
     dplyr::mutate(CHR = as.factor(CHR),
-                  BP = as.integer(BP))
+                  BP = as.integer(BP),
+                  CHR = case_when(
+                    CHR == "23" ~ "X",
+                    CHR == "x" ~ "X",
+                    TRUE ~ CHR
+                  ))
   df_gr <-
     GenomicRanges::makeGRangesFromDataFrame(df,
                                             keep.extra.columns = FALSE,
@@ -100,6 +112,10 @@ convert_loc_to_rs <- function(df, dbsnp){
       BP = pos,
       gr_strand = strand) %>%
     dplyr::right_join(df, by = c("CHR", "BP")) %>%
+    dplyr::mutate(CHR = case_when(
+                        CHR == "X" ~ as.integer(23),
+                        TRUE ~ as.integer(CHR)
+                     )) %>%
     dplyr::select(-gr_strand, -alleles_as_ambig) %>%
     dplyr::filter(., !(is.na(variant_id))) %>%
     dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -214,11 +230,8 @@ for (i in 1:nrow(test_loci)) {
         # No CHR/BP: map rsIDs to GRCh37 positions
         phen1_sumstats <- phen1_sumstats %>%
             convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
-            tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
-            dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
             dplyr::filter(., chromosome == chr &
-                             base_pair_location >= start_pos &
-                             base_pair_location <= end_pos) %>%
+                             base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
             dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
             dplyr::filter(., !is.na(variant_id)) %>%
             dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -232,8 +245,7 @@ for (i in 1:nrow(test_loci)) {
         if ("variant_id" %in% colnames(phen1_sumstats)) {
             phen1_sumstats <- phen1_sumstats %>%
                 dplyr::filter(., chromosome == chr &
-                                 base_pair_location >= start_pos &
-                                 base_pair_location <= end_pos) %>%
+                                 base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
                 dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
                 dplyr::filter(., !is.na(variant_id)) %>%
                 dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -241,7 +253,7 @@ for (i in 1:nrow(test_loci)) {
             phen1_sumstats <- phen1_sumstats %>%
                 dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
                 convert_loc_to_rs(., dbSNP144_GRCh37) %>%
-                dplyr::filter(., as.integer(as.character(CHR)) == chr &
+                dplyr::filter(., CHR == chr &
                                  BP >= start_pos & BP <= end_pos) %>%
                 dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
                 dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -253,11 +265,8 @@ for (i in 1:nrow(test_loci)) {
             # Use rsIDs to get GRCh37 positions directly
             phen1_sumstats <- phen1_sumstats %>%
                 convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
-                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
-                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
                 dplyr::filter(., chromosome == chr &
-                                 base_pair_location >= start_pos &
-                                 base_pair_location <= end_pos) %>%
+                                 base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
                 dplyr::mutate(., N = metadata_phen1$N[1], varbeta = standard_error^2) %>%
                 dplyr::filter(., !is.na(variant_id)) %>%
                 dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -271,8 +280,6 @@ for (i in 1:nrow(test_loci)) {
                 dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
                 convert_loc_to_rs(., dbSNP144_GRCh38) %>%
                 convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
-                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
-                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
                 dplyr::filter(., chromosome == chr &
                                  base_pair_location >= start_pos &
                                  base_pair_location <= end_pos) %>%
@@ -291,15 +298,12 @@ for (i in 1:nrow(test_loci)) {
 
     phen2_sumstats <- rename_to_default(phen2_sumstats, col_aliases)
 
-    if (metadata_phen2$genome_version[1] == "none") {
+     if (metadata_phen2$genome_version[1] == "none") {
         # No CHR/BP: map rsIDs to GRCh37 positions
         phen2_sumstats <- phen2_sumstats %>%
             convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
-            tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
-            dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
             dplyr::filter(., chromosome == chr &
-                             base_pair_location >= start_pos &
-                             base_pair_location <= end_pos) %>%
+                             base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
             dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
             dplyr::filter(., !is.na(variant_id)) %>%
             dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -308,13 +312,12 @@ for (i in 1:nrow(test_loci)) {
     if (metadata_phen2$genome_version[1] == "GRCh37") {
         phen2_sumstats <- rename_to_default(phen2_sumstats, chr_bp_aliases)
         if (any(!(cols_check %in% colnames(phen2_sumstats)))) {
-            stop(stringr::str_c("The summary statistics for ", phen2, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+            stop(stringr::str_c("The summary statistics for ", phen1, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
         }
         if ("variant_id" %in% colnames(phen2_sumstats)) {
             phen2_sumstats <- phen2_sumstats %>%
                 dplyr::filter(., chromosome == chr &
-                                 base_pair_location >= start_pos &
-                                 base_pair_location <= end_pos) %>%
+                                 base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
                 dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
                 dplyr::filter(., !is.na(variant_id)) %>%
                 dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -322,7 +325,7 @@ for (i in 1:nrow(test_loci)) {
             phen2_sumstats <- phen2_sumstats %>%
                 dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
                 convert_loc_to_rs(., dbSNP144_GRCh37) %>%
-                dplyr::filter(., as.integer(as.character(CHR)) == chr &
+                dplyr::filter(., CHR == chr &
                                  BP >= start_pos & BP <= end_pos) %>%
                 dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
                 dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -334,11 +337,8 @@ for (i in 1:nrow(test_loci)) {
             # Use rsIDs to get GRCh37 positions directly
             phen2_sumstats <- phen2_sumstats %>%
                 convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
-                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
-                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
                 dplyr::filter(., chromosome == chr &
-                                 base_pair_location >= start_pos &
-                                 base_pair_location <= end_pos) %>%
+                                 base_pair_location >= start_pos & base_pair_location <= end_pos) %>%
                 dplyr::mutate(., N = metadata_phen2$N[1], varbeta = standard_error^2) %>%
                 dplyr::filter(., !is.na(variant_id)) %>%
                 dplyr::distinct(., variant_id, .keep_all = TRUE)
@@ -346,14 +346,12 @@ for (i in 1:nrow(test_loci)) {
             # Get rsIDs from GRCh38 CHR/BP, then get GRCh37 positions
             phen2_sumstats <- rename_to_default(phen2_sumstats, chr_bp_aliases)
             if (any(!(cols_check %in% colnames(phen2_sumstats)))) {
-                stop(stringr::str_c("The summary statistics for ", phen2, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
+                stop(stringr::str_c("The summary statistics for ", phen1, " do not have one of the expected column names. Please check that the input has the following column names (in no specific order):\nchromosome, base_pair_location, effect_allele, other_allele, beta, standard_error, p_value.\n"))
             }
             phen2_sumstats <- phen2_sumstats %>%
                 dplyr::rename(CHR = chromosome, BP = base_pair_location) %>%
                 convert_loc_to_rs(., dbSNP144_GRCh38) %>%
                 convert_rs_to_loc(., "variant_id", dbSNP144_GRCh37) %>%
-                tidyr::separate(., loc, c("chromosome", "base_pair_location"), sep = ":") %>%
-                dplyr::mutate(., base_pair_location = as.integer(base_pair_location)) %>%
                 dplyr::filter(., chromosome == chr &
                                  base_pair_location >= start_pos &
                                  base_pair_location <= end_pos) %>%
@@ -463,8 +461,8 @@ coloc_res_df <- setNames(coloc_results_res, nm = trait_pairs)
 
 coloc_summ_df %>% dplyr::bind_rows(., .id = "Traits") %>%
     tidyr::separate(., Traits, c("locus", "chr", "start_locus", "end_locus", "phen1", "phen2"), sep = "::") %>%
-    write.table(., stringr::str_c(file_prefix, "coloc_summary.txt"), sep = "\t", row.names = F, quote = F)
+    fwrite(., stringr::str_c(file_prefix, "coloc_summary.tsv"), sep = "\t")
 
 coloc_res_df %>% dplyr::bind_rows(., .id = "Traits") %>%
     tidyr::separate(., Traits, c("locus", "chr", "start_locus", "end_locus", "phen1", "phen2"), sep = "::") %>%
-    write.table(., stringr::str_c(file_prefix, "coloc_all.txt"), sep = "\t", row.names = F, quote = F)
+    fwrite(., stringr::str_c(file_prefix, "coloc_all.tsv"), sep = "\t")

@@ -4,6 +4,7 @@
 
 library(stringr)
 library(dplyr)
+library(data.table)
 
 # Set arguments -----------------------------------------------------------
 
@@ -82,12 +83,10 @@ if (nrow(univar_df) > 0) {
   univar_df,
   file = str_c(base_name, ".univ.lava.rds"))
 
-  write.table(
+  fwrite(
   univar_df,
   file = str_c(base_name, ".univ.lava.tsv"),
-  sep = "\t",
-  row.names = FALSE,
-  quote = FALSE)
+  sep = "\t")
 }
 
 if (nrow(bivar_df) > 0) {
@@ -96,13 +95,10 @@ if (nrow(bivar_df) > 0) {
     file = str_c(base_name, ".bivar.lava.rds")
   )
 
-  write.table(
+  fwrite(
     bivar_df,
     file = str_c(base_name, ".bivar.lava.tsv"),
-    sep = "\t",
-    row.names = FALSE,
-    quote = FALSE
-  )
+    sep = "\t")
 }
 
 cat("LAVA results merged successfully!")

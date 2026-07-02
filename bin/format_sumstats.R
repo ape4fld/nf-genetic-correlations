@@ -29,7 +29,12 @@ convert_loc_to_rs <- function(df, dbsnp){
   df <-
     df %>%
     dplyr::mutate(CHR = as.factor(CHR),
-                  BP = as.integer(BP))
+                  BP = as.integer(BP),
+                  CHR = case_when(
+                    CHR == "23" ~ "X",
+                    CHR == "x" ~ "X",
+                    TRUE ~ CHR
+                  ))
   df_gr <-
     GenomicRanges::makeGRangesFromDataFrame(df,
                                             keep.extra.columns = FALSE,
@@ -159,5 +164,5 @@ df_formatted <- df %>%
 
 # Write to output -----------------------------------------------------------
 if (nrow(df_formatted) > 0) {
-  write.table(df_formatted, output, sep = "\t", row.names = F, quote = F)
+  fwrite(df_formatted, output, sep = "\t")
 }
