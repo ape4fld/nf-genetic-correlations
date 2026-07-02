@@ -136,18 +136,22 @@ wget -O eur_w_ld_chr.tar.gz https://zenodo.org/records/18749273/files/eur_w_ld_c
 tar -xf eur_w_ld_chr.tar.gz
 ```
 
-Place /eur_w_ld_chr in ld_reference directory:
+Place `/eur_w_ld_chr` in `ld_reference` directory:
  ```bash
 mv eur_w_ld_chr/ ./data/ld_reference/
 ```
 
 2. **1000 Genomes Reference or UK Biobank reference for LAVA**
+
 Download PLINK reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md) or download UK Biobank reference files as described in the [LAVA reference guide](https://github.com/josefin-werme/LAVA/blob/main/REFERENCE.md). Note that LAVA developers [highly recommend to use the UK Biobank reference file](https://www.preprints.org/manuscript/202507.0966), instead of the EUR 1000 Genomes reference.
 
 Place 1000 Genomes Reference contents in:
 ```bash
 # Example for EUR 1000 Genomes:
 /nf-genetic-correlations/data/ld_reference/g1000_eur/
+
+# Example for SAS 1000 Genomes:
+/nf-genetic-correlations/data/ld_reference/g1000_sas/
 ```
 or 
 
@@ -155,7 +159,7 @@ Place UK Biobank reference contents in:
 ```bash
 /nf-genetic-correlations/data/ld_reference/ukb_eur/
 ```
-Note: The default LD reference file that is used is the UK Biobank, but the user can specify the LD source with the --lava_ref flag (options: UKB, `1KGP_EUR`, `1KGP_AFR`, `1KGP_EAS`, `1KGP_SAS`, `1KGP_AMR`) - see ```run_nextflow.sh```).
+Note: The default LD reference file that is used is the UK Biobank, but the user can specify the LD source with the --lava_ref flag (options: `UKB`, `1KGP_EUR`, `1KGP_AFR`, `1KGP_EAS`, `1KGP_SAS`, `1KGP_AMR`) - see ```run_nextflow.sh```).
 
 ### 4. ⚙️ Nextflow Configuration
 
@@ -207,7 +211,7 @@ Once you've completed the setup and configuration, you can run the pipeline:
    | --run_id            | Give the specific run a prefix | no prefix |
    | --metadata          | Provide a different name to the metadata file | metadata.txt |
    | --ldsc_ref          | Provide directory name of the LDSC reference panel | 'eur_w_ld_chr' |
-   | --lava_ref          | Specify LD reference for LAVA ('UKB', '1KGP_EUR', '1KGP_AFR', '1KGP_EAS', '1KGP_SAS', '1KGP_AMR') | 'UKB' |
+   | --lava_ref          | Specify LD population reference for LAVA ('UKB', '1KGP_EUR', '1KGP_AFR', '1KGP_EAS', '1KGP_SAS', '1KGP_AMR') | 'UKB' |
    | --lava_locus        | Provide a LAVA custom locus file name (should be stored in `data/ld_reference/`) | 'EUR' (EUR 1000 Genomes locus file with chromosome X included) |
    | --coloc             | Include colocalization analysis (true or false) | false |
    | --pvalue_LAVA_coloc | Provide p-value cutoff for a significant local genetic correlation (for use with --coloc) | 0.05 |
